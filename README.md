@@ -71,3 +71,18 @@ kubectl get pods -l app=model-server -o wide
 - HPA scales up under load (`2 -> 4 -> 6`).
 - HPA scales down after load completion (returns to min replicas).
 - Evidence is captured under `docs/evidence/` and summarized in `docs/reflection.md`.
+
+## Phase 2 Completion Evidence
+
+- Assessment narrative:
+  - `docs/reflection.md` (section `12) HPA Scale-Up/Down Assessment (Load Generator)`)
+- Baseline and final snapshots:
+  - `docs/evidence/46-hpa-before-load.txt`
+  - `docs/evidence/50-hpa-after-load.txt`
+  - `docs/evidence/51-deploy-after-load.txt`
+  - `docs/evidence/52-pods-after-load.txt`
+- Timeline and event proof:
+  - `docs/evidence/49-hpa-timeline-1.txt` ... `docs/evidence/49-hpa-timeline-56.txt`
+  - `docs/evidence/54-hpa-scale-timeline.md`
+  - `docs/evidence/53-events-hpa-updown-last-250.txt`
+  - `docs/evidence/55-hpa-describe-final.txt`
