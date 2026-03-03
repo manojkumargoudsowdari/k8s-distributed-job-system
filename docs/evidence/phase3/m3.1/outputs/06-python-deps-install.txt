@@ -1,0 +1,15 @@
+Defaulting to user installation because normal site-packages is not writeable
+Collecting psycopg==3.2.6 (from psycopg[binary]==3.2.6->-r d:\Work\Code\Kubernetes\k8s-distributed-job-system\requirements-phase3.txt (line 1))
+  Downloading psycopg-3.2.6-py3-none-any.whl.metadata (4.4 kB)
+Collecting psycopg-pool==3.2.6 (from -r d:\Work\Code\Kubernetes\k8s-distributed-job-system\requirements-phase3.txt (line 2))
+  Downloading psycopg_pool-3.2.6-py3-none-any.whl.metadata (2.6 kB)
+Requirement already satisfied: tzdata in c:\users\manoj\appdata\roaming\python\python313\site-packages (from psycopg==3.2.6->psycopg[binary]==3.2.6->-r d:\Work\Code\Kubernetes\k8s-distributed-job-system\requirements-phase3.txt (line 1)) (2025.3)
+Requirement already satisfied: typing-extensions>=4.6 in c:\users\manoj\appdata\roaming\python\python313\site-packages (from psycopg-pool==3.2.6->-r d:\Work\Code\Kubernetes\k8s-distributed-job-system\requirements-phase3.txt (line 2)) (4.15.0)
+Collecting psycopg-binary==3.2.6 (from psycopg[binary]==3.2.6->-r d:\Work\Code\Kubernetes\k8s-distributed-job-system\requirements-phase3.txt (line 1))
+  Downloading psycopg_binary-3.2.6-cp313-cp313-win_amd64.whl.metadata (2.9 kB)
+Downloading psycopg-3.2.6-py3-none-any.whl (199 kB)
+Downloading psycopg_pool-3.2.6-py3-none-any.whl (38 kB)
+Downloading psycopg_binary-3.2.6-cp313-cp313-win_amd64.whl (2.8 MB)
+   ---------------------------------------- 2.8/2.8 MB 13.9 MB/s eta 0:00:00
+Installing collected packages: psycopg-pool, psycopg-binary, psycopg
+Successfully installed psycopg-3.2.6 psycopg-binary-3.2.6 psycopg-pool-3.2.6

@@ -514,6 +514,37 @@ Operational note:
 - TTL cleanup evidence:
   - `41-loadgen-job-ttl-cleanup.txt`
 
+## 13) Phase 3 M3.1 - Domain + Persistence
+
+What changed:
+
+- Added migration:
+  - `db/migrations/001_create_jobs.sql`
+- Added lifecycle architecture note:
+  - `docs/architecture/job-lifecycle.md`
+- Added minimal DB access layer:
+  - `pkg/job_system/models.py`
+  - `pkg/job_system/db.py`
+  - `scripts/m3_1_db_smoke.py`
+  - `requirements-phase3.txt`
+
+What was proven:
+
+- Postgres reachable and migration applied.
+- `jobs` table exists with required columns and indexes.
+- Insert/select works for sample job row.
+- Status transitions can be recorded (`QUEUED -> RUNNING -> SUCCEEDED`).
+
+Evidence:
+
+- `docs/evidence/phase3/m3.1/01-psql-connection.txt`
+- `docs/evidence/phase3/m3.1/02-migration-applied.txt`
+- `docs/evidence/phase3/m3.1/03-schema-jobs-table.txt`
+- `docs/evidence/phase3/m3.1/04-indexes.txt`
+- `docs/evidence/phase3/m3.1/05-sample-insert-select.txt`
+- `docs/evidence/phase3/m3.1/runbook.md`
+- `docs/evidence/phase3/m3.1/commands.txt`
+
 ## Notes
 
 Full raw outputs are stored in `docs/evidence/`:
