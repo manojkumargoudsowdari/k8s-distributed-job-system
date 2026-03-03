@@ -738,3 +738,61 @@ Full raw outputs are stored in `docs/evidence/`:
 - `53-events-hpa-updown-last-250.txt`
 - `54-hpa-scale-timeline.md`
 - `55-hpa-describe-final.txt`
+
+## 17) Phase 3 M3.5 - Observability Layer (Metrics + Log Correlation)
+
+What changed:
+
+- Added shared Prometheus metrics module:
+  - `pkg/job_system/metrics.py`
+- Extended repository for metrics aggregation:
+  - `pkg/job_system/db.py`
+    - `get_status_counts()`
+    - `get_reliability_totals()`
+- Wired metrics endpoint in API:
+  - `services/api/main.py` (`GET /metrics`)
+- Wired scheduler metrics server and metric updates:
+  - `services/scheduler/main.py`
+    - serves metrics on `SCHEDULER_METRICS_PORT` (default `9000`)
+    - refreshes queued/running gauges from DB
+    - syncs success/fail/retry counters from DB totals
+    - records latency histogram on terminal transitions
+- Added Prometheus client dependency:
+  - `services/api/requirements.txt`
+  - `services/scheduler/requirements.txt`
+  - `requirements-phase3.txt`
+- Updated scheduler deployment for metrics port exposure:
+  - `k8s/job-system/scheduler-deployment.yaml`
+
+Required metrics implemented:
+
+- Gauges:
+  - `job_system_jobs_queued`
+  - `job_system_jobs_running`
+- Counters:
+  - `job_system_job_success_total`
+  - `job_system_job_fail_total`
+  - `job_system_job_retries_total`
+- Histogram:
+  - `job_system_job_latency_seconds`
+
+What was proven:
+
+- Prometheus text exposition is available from scheduler `/metrics` and API `/metrics`.
+- Metrics changed predictably across the workload lifecycle:
+  - baseline: queued/running at `0`
+  - during load: queued/running increased while jobs were being dispatched/executed
+  - after drain: queued/running returned to `0` with terminal counters increased
+- Structured logs include job correlation fields:
+  - API emits `submit_created job_id=...`
+  - Scheduler emits `k8s_job_created/job_running/job_succeeded/job_requeued_for_retry` with `job_id=...`
+
+Evidence:
+
+- `docs/evidence/phase3/m3.5/outputs/01-metrics-baseline.txt`
+- `docs/evidence/phase3/m3.5/outputs/02-submit-20-jobs.txt`
+- `docs/evidence/phase3/m3.5/outputs/03-metrics-during-load.txt`
+- `docs/evidence/phase3/m3.5/outputs/04-metrics-after-drain.txt`
+- `docs/evidence/phase3/m3.5/outputs/05-logs-correlation.txt`
+- `docs/evidence/phase3/m3.5/runbook.md`
+- `docs/evidence/phase3/m3.5/commands.txt`

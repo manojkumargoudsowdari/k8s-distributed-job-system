@@ -1,0 +1,83 @@
+# HELP python_gc_objects_collected_total Objects collected during gc
+# TYPE python_gc_objects_collected_total counter
+python_gc_objects_collected_total{generation="0"} 1123.0
+python_gc_objects_collected_total{generation="1"} 628.0
+python_gc_objects_collected_total{generation="2"} 0.0
+# HELP python_gc_objects_uncollectable_total Uncollectable objects found during GC
+# TYPE python_gc_objects_uncollectable_total counter
+python_gc_objects_uncollectable_total{generation="0"} 0.0
+python_gc_objects_uncollectable_total{generation="1"} 0.0
+python_gc_objects_uncollectable_total{generation="2"} 0.0
+# HELP python_gc_collections_total Number of times this generation was collected
+# TYPE python_gc_collections_total counter
+python_gc_collections_total{generation="0"} 187.0
+python_gc_collections_total{generation="1"} 17.0
+python_gc_collections_total{generation="2"} 1.0
+# HELP python_info Python platform information
+# TYPE python_info gauge
+python_info{implementation="CPython",major="3",minor="12",patchlevel="12",version="3.12.12"} 1.0
+# HELP process_virtual_memory_bytes Virtual memory size in bytes.
+# TYPE process_virtual_memory_bytes gauge
+process_virtual_memory_bytes 5.80268032e+08
+# HELP process_resident_memory_bytes Resident memory size in bytes.
+# TYPE process_resident_memory_bytes gauge
+process_resident_memory_bytes 9.388032e+07
+# HELP process_start_time_seconds Start time of the process since unix epoch in seconds.
+# TYPE process_start_time_seconds gauge
+process_start_time_seconds 1.77257555613e+09
+# HELP process_cpu_seconds_total Total user and system CPU time spent in seconds.
+# TYPE process_cpu_seconds_total counter
+process_cpu_seconds_total 1.1
+# HELP process_open_fds Number of open file descriptors.
+# TYPE process_open_fds gauge
+process_open_fds 11.0
+# HELP process_max_fds Maximum number of open file descriptors.
+# TYPE process_max_fds gauge
+process_max_fds 1.048576e+06
+# HELP job_system_jobs_queued Number of queued jobs ready or waiting for retry.
+# TYPE job_system_jobs_queued gauge
+job_system_jobs_queued 10.0
+# HELP job_system_jobs_running Number of currently running jobs.
+# TYPE job_system_jobs_running gauge
+job_system_jobs_running 10.0
+# HELP job_system_job_success_total Total number of succeeded jobs.
+# TYPE job_system_job_success_total counter
+job_system_job_success_total 10.0
+# HELP job_system_job_success_created Total number of succeeded jobs.
+# TYPE job_system_job_success_created gauge
+job_system_job_success_created 1.7725755587818532e+09
+# HELP job_system_job_fail_total Total number of failed jobs.
+# TYPE job_system_job_fail_total counter
+job_system_job_fail_total 10.0
+# HELP job_system_job_fail_created Total number of failed jobs.
+# TYPE job_system_job_fail_created gauge
+job_system_job_fail_created 1.772575558781876e+09
+# HELP job_system_job_retries_total Total number of retry requeues.
+# TYPE job_system_job_retries_total counter
+job_system_job_retries_total 10.0
+# HELP job_system_job_retries_created Total number of retry requeues.
+# TYPE job_system_job_retries_created gauge
+job_system_job_retries_created 1.7725755587818906e+09
+# HELP job_system_job_latency_seconds Job runtime latency in seconds from started_at to finished_at.
+# TYPE job_system_job_latency_seconds histogram
+job_system_job_latency_seconds_bucket{le="0.005"} 0.0
+job_system_job_latency_seconds_bucket{le="0.01"} 0.0
+job_system_job_latency_seconds_bucket{le="0.025"} 0.0
+job_system_job_latency_seconds_bucket{le="0.05"} 0.0
+job_system_job_latency_seconds_bucket{le="0.075"} 0.0
+job_system_job_latency_seconds_bucket{le="0.1"} 0.0
+job_system_job_latency_seconds_bucket{le="0.25"} 0.0
+job_system_job_latency_seconds_bucket{le="0.5"} 0.0
+job_system_job_latency_seconds_bucket{le="0.75"} 0.0
+job_system_job_latency_seconds_bucket{le="1.0"} 0.0
+job_system_job_latency_seconds_bucket{le="2.5"} 0.0
+job_system_job_latency_seconds_bucket{le="5.0"} 0.0
+job_system_job_latency_seconds_bucket{le="7.5"} 0.0
+job_system_job_latency_seconds_bucket{le="10.0"} 0.0
+job_system_job_latency_seconds_bucket{le="+Inf"} 0.0
+job_system_job_latency_seconds_count 0.0
+job_system_job_latency_seconds_sum 0.0
+# HELP job_system_job_latency_seconds_created Job runtime latency in seconds from started_at to finished_at.
+# TYPE job_system_job_latency_seconds_created gauge
+job_system_job_latency_seconds_created 1.7725755587819185e+09
+

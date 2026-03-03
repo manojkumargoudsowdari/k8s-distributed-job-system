@@ -131,6 +131,37 @@ class JobRepository:
             rows = cur.fetchall()
         return [_row_to_job(row) for row in rows]
 
+    def get_status_counts(self) -> dict[str, int]:
+        query = """
+        SELECT status, COUNT(*) AS count
+        FROM jobs
+        GROUP BY status
+        """
+        with self.pool.connection() as conn, conn.cursor() as cur:
+            cur.execute(query)
+            rows = cur.fetchall()
+        counts: dict[str, int] = {}
+        for row in rows:
+            counts[row["status"]] = int(row["count"])
+        return counts
+
+    def get_reliability_totals(self) -> dict[str, int]:
+        query = """
+        SELECT
+            COUNT(*) FILTER (WHERE status = 'SUCCEEDED') AS success_total,
+            COUNT(*) FILTER (WHERE status = 'FAILED') AS fail_total,
+            COALESCE(SUM(GREATEST(attempts - 1, 0)), 0) AS retries_total
+        FROM jobs
+        """
+        with self.pool.connection() as conn, conn.cursor() as cur:
+            cur.execute(query)
+            row = cur.fetchone()
+        return {
+            "success_total": int(row["success_total"]),
+            "fail_total": int(row["fail_total"]),
+            "retries_total": int(row["retries_total"]),
+        }
+
     def mark_job_running(self, job_id: UUID) -> Job | None:
         now = datetime.now(timezone.utc)
         query = """

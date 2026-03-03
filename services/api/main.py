@@ -3,17 +3,20 @@
 from __future__ import annotations
 
 import os
+import logging
 from dataclasses import asdict
 from functools import lru_cache
 from typing import Any
 from uuid import UUID
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Query, status
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Response, status
 from pydantic import BaseModel, Field
 
-from pkg.job_system import Job, JobRepository
+from pkg.job_system import Job, JobRepository, render_metrics
 
 app = FastAPI(title="distributed-job-system-api")
+# Reuse uvicorn logger pipeline so app logs appear in pod logs.
+LOGGER = logging.getLogger("uvicorn.error")
 
 
 class JobSpec(BaseModel):
@@ -136,6 +139,12 @@ def healthz() -> dict[str, str]:
     return {"status": "ok"}
 
 
+@app.get("/metrics")
+def metrics(repo: JobRepository = Depends(get_repository)) -> Response:
+    body, content_type = render_metrics(repo)
+    return Response(content=body, media_type=content_type)
+
+
 @app.post(
     "/jobs", response_model=JobSubmitResponse, status_code=status.HTTP_201_CREATED
 )
@@ -148,10 +157,18 @@ def submit_job(
         existing = repo.get_job_by_idempotency_key(idempotency_key)
         if existing:
             if _job_fingerprint(existing) != _job_spec_fingerprint(spec):
+                LOGGER.warning(
+                    "idempotency_conflict idempotency_key=%s", idempotency_key
+                )
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
                     detail="Idempotency-Key conflict: request body differs from existing job",
                 )
+            LOGGER.info(
+                "submit_idempotent_hit job_id=%s status=%s",
+                existing.id,
+                existing.status,
+            )
             return JobSubmitResponse(job_id=existing.id, status=existing.status)
 
     created = repo.create_job(
@@ -168,10 +185,16 @@ def submit_job(
         idempotency_key=idempotency_key,
     )
     if idempotency_key and _job_fingerprint(created) != _job_spec_fingerprint(spec):
+        LOGGER.warning(
+            "idempotency_conflict_post_create job_id=%s idempotency_key=%s",
+            created.id,
+            idempotency_key,
+        )
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Idempotency-Key conflict: request body differs from existing job",
         )
+    LOGGER.info("submit_created job_id=%s status=%s", created.id, created.status)
     return JobSubmitResponse(job_id=created.id, status=created.status)
 
 
@@ -179,9 +202,13 @@ def submit_job(
 def get_job(job_id: UUID, repo: JobRepository = Depends(get_repository)) -> JobResponse:
     job = repo.get_job(job_id)
     if not job:
+        LOGGER.warning("get_not_found job_id=%s", job_id)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Job not found"
         )
+    LOGGER.info(
+        "get_job job_id=%s status=%s attempts=%s", job.id, job.status, job.attempts
+    )
     return _job_to_response(job)
 
 
@@ -192,6 +219,9 @@ def list_jobs(
     repo: JobRepository = Depends(get_repository),
 ) -> list[JobResponse]:
     jobs = repo.list_jobs(status=status_filter, limit=limit)
+    LOGGER.info(
+        "list_jobs status=%s limit=%s count=%s", status_filter, limit, len(jobs)
+    )
     return [_job_to_response(job) for job in jobs]
 
 
@@ -201,18 +231,22 @@ def cancel_job(
 ) -> CancelResponse:
     job = repo.get_job(job_id)
     if not job:
+        LOGGER.warning("cancel_not_found job_id=%s", job_id)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Job not found"
         )
     if job.status != "QUEUED":
+        LOGGER.warning("cancel_conflict job_id=%s status=%s", job_id, job.status)
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Only QUEUED jobs can be canceled in M3.2",
         )
     updated = repo.update_job_status(job_id, "CANCELED")
     if not updated:
+        LOGGER.error("cancel_failed_update job_id=%s", job_id)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to cancel job",
         )
+    LOGGER.info("cancelled job_id=%s status=%s", updated.id, updated.status)
     return CancelResponse(job_id=updated.id, status=updated.status)
