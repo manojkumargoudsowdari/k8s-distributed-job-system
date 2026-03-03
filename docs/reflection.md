@@ -634,6 +634,51 @@ Evidence:
 - `docs/evidence/phase3/m3.3/runbook.md`
 - `docs/evidence/phase3/m3.3/commands.txt`
 
+## 16) Phase 3 M3.4 - Reliability Layer
+
+What changed:
+
+- Added migration for retry scheduling:
+  - `db/migrations/002_m3_4_reliability.sql`
+  - Adds `next_retry_at` + dispatch-ready index.
+- Extended domain/repository:
+  - `pkg/job_system/models.py` adds `next_retry_at`
+  - `pkg/job_system/db.py` adds:
+    - `list_dispatchable_jobs` (`QUEUED` + `next_retry_at <= now`)
+    - `mark_job_for_retry`
+    - `compute_next_retry_at`
+    - `mark_job_running` now resets per-attempt `started_at`
+- Extended scheduler reliability behavior:
+  - `services/scheduler/main.py`
+    - retries failed jobs when `attempts < max_retries`
+    - computes increasing retry delay via `next_retry_at`
+    - enforces timeout (`last_error=timeout`)
+    - terminates timed-out Kubernetes Jobs
+    - detects missing K8s Job for `RUNNING` rows and marks failed
+    - attempt-specific K8s Job naming/labels (`job-system/attempt`)
+- RBAC updated to allow scheduler to delete Jobs for timeout enforcement:
+  - `k8s/job-system/scheduler-role.yaml`
+
+What was proven:
+
+- Retry policy works: flaky job advanced through attempts and requeued until retry budget exhausted.
+- Backoff gate works: scheduler only re-dispatches when `next_retry_at` is due.
+- Timeout enforcement works: long-running job marked `FAILED` with `last_error=timeout`, backing K8s workload terminated.
+- Scheduler restart safety works: deleting scheduler pod did not lose in-flight processing; job reached terminal state after pod replacement.
+
+Evidence:
+
+- `docs/evidence/phase3/m3.4/01-submit-flaky-job.txt`
+- `docs/evidence/phase3/m3.4/02-retry-attempts-api.txt`
+- `docs/evidence/phase3/m3.4/03-scheduler-logs-retry.txt`
+- `docs/evidence/phase3/m3.4/04-backoff-timeline.txt`
+- `docs/evidence/phase3/m3.4/05-submit-timeout-job.txt`
+- `docs/evidence/phase3/m3.4/06-k8s-job-terminated-timeout.txt`
+- `docs/evidence/phase3/m3.4/07-api-job-failed-timeout.txt`
+- `docs/evidence/phase3/m3.4/08-restart-scheduler-proof.txt`
+- `docs/evidence/phase3/m3.4/runbook.md`
+- `docs/evidence/phase3/m3.4/commands.txt`
+
 ## Notes
 
 Full raw outputs are stored in `docs/evidence/`:

@@ -1,0 +1,63 @@
+# Build fresh images
+docker build --no-cache -f Dockerfile.api -t job-system-api:0.1.0 .
+docker build --no-cache -f Dockerfile.scheduler -t job-system-scheduler:0.1.0 .
+
+# Import into Kind node
+docker save -o job-system-api.tar job-system-api:0.1.0
+docker save -o job-system-scheduler.tar job-system-scheduler:0.1.0
+docker cp "D:\Work\Code\Kubernetes\k8s-distributed-job-system\job-system-api.tar" ai-infra-lab-control-plane:/job-system-api.tar
+docker cp "D:\Work\Code\Kubernetes\k8s-distributed-job-system\job-system-scheduler.tar" ai-infra-lab-control-plane:/job-system-scheduler.tar
+docker exec ai-infra-lab-control-plane ctr -n k8s.io images import /job-system-api.tar
+docker exec ai-infra-lab-control-plane ctr -n k8s.io images import /job-system-scheduler.tar
+
+# Apply manifests
+kubectl apply -f k8s/job-system/postgres.yaml
+kubectl apply -f k8s/job-system/api-service.yaml -f k8s/job-system/api-deployment.yaml
+kubectl apply -f k8s/job-system/scheduler-serviceaccount.yaml
+kubectl apply -f k8s/job-system/scheduler-role.yaml
+kubectl apply -f k8s/job-system/scheduler-rolebinding.yaml
+kubectl apply -f k8s/job-system/scheduler-deployment.yaml
+
+# Restart API and scheduler to pick fresh image content
+kubectl rollout restart deployment/job-system-api deployment/job-system-scheduler
+kubectl rollout status deployment/job-system-api --timeout=180s
+kubectl rollout status deployment/job-system-scheduler --timeout=180s
+kubectl rollout status deployment/job-system-postgres --timeout=180s
+
+# Apply migrations and clear tables
+$dbPod=(kubectl get pods -l app=job-system-postgres -o jsonpath='{.items[0].metadata.name}')
+kubectl cp db/migrations/001_create_jobs.sql "default/${dbPod}:/tmp/001_create_jobs.sql"
+kubectl cp db/migrations/002_m3_4_reliability.sql "default/${dbPod}:/tmp/002_m3_4_reliability.sql"
+kubectl exec $dbPod -- psql -U jobs -d jobs -f /tmp/001_create_jobs.sql
+kubectl exec $dbPod -- psql -U jobs -d jobs -f /tmp/002_m3_4_reliability.sql
+kubectl exec $dbPod -- psql -U jobs -d jobs -c "TRUNCATE TABLE job_attempts, jobs RESTART IDENTITY;"
+
+# Port-forward API
+kubectl port-forward svc/job-system-api 18080:80
+
+# Submit flaky retry job
+curl -s -X POST http://127.0.0.1:18080/jobs \
+  -H "Content-Type: application/json" \
+  -d '{"image":"busybox:1.36","command":["sh","-c"],"args":["echo flaky-fail; exit 1"],"max_retries":3,"backoff_seconds":5,"queue":"default"}'
+
+# Poll API for attempts/status
+curl -s http://127.0.0.1:18080/jobs/<flaky_job_id>
+
+# Scheduler logs showing retry decisions
+kubectl logs deploy/job-system-scheduler
+
+# Submit timeout job
+curl -s -X POST http://127.0.0.1:18080/jobs \
+  -H "Content-Type: application/json" \
+  -d '{"image":"busybox:1.36","command":["sh","-c"],"args":["echo timeout-start; sleep 120; echo timeout-end"],"timeout_seconds":10,"max_retries":0,"queue":"default"}'
+
+# Verify timeout handling
+curl -s http://127.0.0.1:18080/jobs/<timeout_job_id>
+kubectl get jobs -l "job-system/job-id=<timeout_job_id>" -o wide
+kubectl get pods -l "job-system/job-id=<timeout_job_id>" -o wide
+
+# Restart safety proof
+kubectl get pods -l app=job-system-scheduler
+kubectl delete pod <scheduler_pod_name>
+kubectl wait --for=condition=Ready pod -l app=job-system-scheduler --timeout=120s
+curl -s http://127.0.0.1:18080/jobs/<restart_proof_job_id>

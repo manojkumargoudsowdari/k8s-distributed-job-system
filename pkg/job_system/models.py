@@ -29,6 +29,7 @@ class Job:
     queued_at: datetime | None = None
     started_at: datetime | None = None
     finished_at: datetime | None = None
+    next_retry_at: datetime | None = None
 
 
 @dataclass

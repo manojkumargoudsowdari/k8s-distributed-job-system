@@ -57,6 +57,7 @@ class JobResponse(BaseModel):
     queued_at: str | None
     started_at: str | None
     finished_at: str | None
+    next_retry_at: str | None
     updated_at: str
 
 
@@ -67,7 +68,14 @@ class CancelResponse(BaseModel):
 
 def _job_to_response(job: Job) -> JobResponse:
     raw = asdict(job)
-    for key in ("created_at", "queued_at", "started_at", "finished_at", "updated_at"):
+    for key in (
+        "created_at",
+        "queued_at",
+        "started_at",
+        "finished_at",
+        "next_retry_at",
+        "updated_at",
+    ):
         if raw[key] is not None:
             raw[key] = raw[key].isoformat()
     return JobResponse(**raw)
@@ -128,7 +136,9 @@ def healthz() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@app.post("/jobs", response_model=JobSubmitResponse, status_code=status.HTTP_201_CREATED)
+@app.post(
+    "/jobs", response_model=JobSubmitResponse, status_code=status.HTTP_201_CREATED
+)
 def submit_job(
     spec: JobSpec,
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
@@ -169,7 +179,9 @@ def submit_job(
 def get_job(job_id: UUID, repo: JobRepository = Depends(get_repository)) -> JobResponse:
     job = repo.get_job(job_id)
     if not job:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Job not found"
+        )
     return _job_to_response(job)
 
 
@@ -184,10 +196,14 @@ def list_jobs(
 
 
 @app.post("/jobs/{job_id}/cancel", response_model=CancelResponse)
-def cancel_job(job_id: UUID, repo: JobRepository = Depends(get_repository)) -> CancelResponse:
+def cancel_job(
+    job_id: UUID, repo: JobRepository = Depends(get_repository)
+) -> CancelResponse:
     job = repo.get_job(job_id)
     if not job:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Job not found"
+        )
     if job.status != "QUEUED":
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -195,5 +211,8 @@ def cancel_job(job_id: UUID, repo: JobRepository = Depends(get_repository)) -> C
         )
     updated = repo.update_job_status(job_id, "CANCELED")
     if not updated:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to cancel job")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to cancel job",
+        )
     return CancelResponse(job_id=updated.id, status=updated.status)

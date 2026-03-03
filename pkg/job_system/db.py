@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -46,13 +46,13 @@ class JobRepository:
         query = """
         INSERT INTO jobs (
             id, idempotency_key, queue, image, command, args, env, resources,
-            priority, max_retries, backoff_seconds, timeout_seconds, status, created_at, queued_at, updated_at
+            priority, max_retries, backoff_seconds, timeout_seconds, status, created_at, queued_at, next_retry_at, updated_at
         )
         VALUES (
             %(id)s, %(idempotency_key)s, %(queue)s, %(image)s, %(command)s, %(args)s,
             %(env)s, %(resources)s, %(priority)s, %(max_retries)s,
             %(backoff_seconds)s, %(timeout_seconds)s,
-            'QUEUED', %(created_at)s, %(queued_at)s, %(updated_at)s
+            'QUEUED', %(created_at)s, %(queued_at)s, %(next_retry_at)s, %(updated_at)s
         )
         RETURNING *
         """
@@ -71,6 +71,7 @@ class JobRepository:
             "timeout_seconds": timeout_seconds,
             "created_at": now,
             "queued_at": now,
+            "next_retry_at": now,
             "updated_at": now,
         }
         with self.pool.connection() as conn, conn.cursor() as cur:
@@ -115,19 +116,64 @@ class JobRepository:
             rows = cur.fetchall()
         return [_row_to_job(row) for row in rows]
 
+    def list_dispatchable_jobs(self, limit: int = 5) -> list[Job]:
+        now = datetime.now(timezone.utc)
+        query = """
+        SELECT *
+        FROM jobs
+        WHERE status = 'QUEUED'
+          AND COALESCE(next_retry_at, queued_at, created_at) <= %(now)s
+        ORDER BY priority DESC, COALESCE(next_retry_at, queued_at, created_at) ASC, created_at ASC
+        LIMIT %(limit)s
+        """
+        with self.pool.connection() as conn, conn.cursor() as cur:
+            cur.execute(query, {"now": now, "limit": limit})
+            rows = cur.fetchall()
+        return [_row_to_job(row) for row in rows]
+
     def mark_job_running(self, job_id: UUID) -> Job | None:
         now = datetime.now(timezone.utc)
         query = """
         UPDATE jobs
         SET status = 'RUNNING',
             updated_at = %(updated_at)s,
-            started_at = COALESCE(started_at, %(updated_at)s),
+            started_at = %(updated_at)s,
+            finished_at = NULL,
             attempts = attempts + 1
         WHERE id = %(id)s AND status = 'QUEUED'
         RETURNING *
         """
         with self.pool.connection() as conn, conn.cursor() as cur:
             cur.execute(query, {"id": job_id, "updated_at": now})
+            row = cur.fetchone()
+            conn.commit()
+        return _row_to_job(row) if row else None
+
+    def mark_job_for_retry(
+        self, job_id: UUID, *, error: str, next_retry_at: datetime
+    ) -> Job | None:
+        now = datetime.now(timezone.utc)
+        query = """
+        UPDATE jobs
+        SET status = 'QUEUED',
+            last_error = %(error)s,
+            queued_at = %(queued_at)s,
+            next_retry_at = %(next_retry_at)s,
+            updated_at = %(updated_at)s
+        WHERE id = %(id)s AND status = 'RUNNING'
+        RETURNING *
+        """
+        with self.pool.connection() as conn, conn.cursor() as cur:
+            cur.execute(
+                query,
+                {
+                    "id": job_id,
+                    "error": error,
+                    "queued_at": now,
+                    "next_retry_at": next_retry_at,
+                    "updated_at": now,
+                },
+            )
             row = cur.fetchone()
             conn.commit()
         return _row_to_job(row) if row else None
@@ -141,6 +187,7 @@ class JobRepository:
         SET status = %(status)s,
             last_error = %(error)s,
             updated_at = %(updated_at)s,
+            next_retry_at = NULL,
             finished_at = COALESCE(finished_at, %(updated_at)s)
         WHERE id = %(id)s AND status = 'RUNNING'
         RETURNING *
@@ -164,7 +211,7 @@ class JobRepository:
             last_error = %(error)s,
             updated_at = %(updated_at)s,
             started_at = CASE WHEN %(status)s = 'RUNNING' AND started_at IS NULL THEN %(updated_at)s ELSE started_at END,
-            finished_at = CASE WHEN %(status)s IN ('SUCCEEDED', 'FAILED', 'CANCELED') THEN %(updated_at)s ELSE finished_at END
+        finished_at = CASE WHEN %(status)s IN ('SUCCEEDED', 'FAILED', 'CANCELED') THEN %(updated_at)s ELSE finished_at END
         WHERE id = %(id)s
         RETURNING *
         """
@@ -200,5 +247,18 @@ def _row_to_job(row: dict[str, Any]) -> Job:
         queued_at=row.get("queued_at"),
         started_at=row.get("started_at"),
         finished_at=row.get("finished_at"),
+        next_retry_at=row.get("next_retry_at"),
         updated_at=row["updated_at"],
     )
+
+
+def compute_next_retry_at(*, attempts_completed: int, backoff_seconds: int) -> datetime:
+    """Return next retry timestamp using triangular-number backoff.
+
+    Delay sequence with backoff_seconds=5:
+    attempts_completed=1 -> 5s
+    attempts_completed=2 -> 15s
+    attempts_completed=3 -> 30s
+    """
+    delay_seconds = backoff_seconds * attempts_completed * (attempts_completed + 1) // 2
+    return datetime.now(timezone.utc) + timedelta(seconds=delay_seconds)
