@@ -1,0 +1,14 @@
+# Submit restart-proof job
+{"job_id":"3bea49f9-c901-4308-b168-bf78ec573e77","status":"QUEUED"}
+
+# Wait until RUNNING
+{"id":"3bea49f9-c901-4308-b168-bf78ec573e77","idempotency_key":null,"queue":"default","image":"busybox:1.36","command":["sh","-c"],"args":["echo restart-proof; sleep 20; echo done"],"env":{},"resources":{},"priority":0,"max_retries":0,"backoff_seconds":5,"timeout_seconds":null,"status":"RUNNING","attempts":1,"desired_status":null,"last_error":null,"created_at":"2026-03-03T21:46:52.647461+00:00","queued_at":"2026-03-03T21:46:52.647461+00:00","started_at":"2026-03-03T21:46:52.909816+00:00","finished_at":null,"next_retry_at":"2026-03-03T21:46:52.647461+00:00","updated_at":"2026-03-03T21:46:52.909816+00:00"}
+
+# Delete scheduler pod: job-system-scheduler-d89bb8cb7-7z2dv
+pod "job-system-scheduler-d89bb8cb7-7z2dv" deleted from default namespace
+
+# Wait for new scheduler pod
+pod/job-system-scheduler-d89bb8cb7-gknxs condition met
+
+# Final job state after scheduler restart
+{"id":"3bea49f9-c901-4308-b168-bf78ec573e77","idempotency_key":null,"queue":"default","image":"busybox:1.36","command":["sh","-c"],"args":["echo restart-proof; sleep 20; echo done"],"env":{},"resources":{},"priority":0,"max_retries":0,"backoff_seconds":5,"timeout_seconds":null,"status":"SUCCEEDED","attempts":1,"desired_status":null,"last_error":null,"created_at":"2026-03-03T21:46:52.647461+00:00","queued_at":"2026-03-03T21:46:52.647461+00:00","started_at":"2026-03-03T21:46:52.909816+00:00","finished_at":"2026-03-03T21:47:17.029662+00:00","next_retry_at":null,"updated_at":"2026-03-03T21:47:17.029662+00:00"}

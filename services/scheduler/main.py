@@ -8,24 +8,25 @@ from __future__ import annotations
 import logging
 import os
 import time
-from typing import Any
+from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
 from kubernetes import client, config
 from kubernetes.client import ApiException
 
-from pkg.job_system import Job, JobRepository
+from pkg.job_system import Job, JobRepository, compute_next_retry_at
 
 LOGGER = logging.getLogger("job-system-scheduler")
 
 
-def _build_k8s_job_manifest(job: Job, namespace: str) -> client.V1Job:
+def _build_k8s_job_manifest(job: Job, namespace: str, attempt: int) -> client.V1Job:
     job_id = str(job.id)
-    name = f"js-job-{job_id[:8]}"
+    name = f"js-job-{job_id[:8]}-a{attempt}"
     labels = {
         "app": "job-system-task",
         "job-system/managed-by": "scheduler",
         "job-system/job-id": job_id,
+        "job-system/attempt": str(attempt),
     }
 
     env_vars = []
@@ -104,47 +105,75 @@ class Scheduler:
         self._reconcile_running_jobs()
 
     def _dispatch_queued_jobs(self) -> None:
-        queued_jobs = self.repo.list_jobs(
-            status="QUEUED", limit=self.dispatch_batch_size
-        )
+        queued_jobs = self.repo.list_dispatchable_jobs(limit=self.dispatch_batch_size)
         for job in queued_jobs:
-            self._ensure_k8s_job_exists(job)
+            next_attempt = job.attempts + 1
+            created = self._ensure_k8s_job_exists(job, next_attempt)
+            if not created:
+                continue
             marked = self.repo.mark_job_running(job.id)
-            if marked:
-                LOGGER.info("Marked job as RUNNING", extra={"job_id": str(job.id)})
+            if not marked:
+                LOGGER.info(
+                    "Skipped mark RUNNING because job state changed",
+                    extra={"job_id": str(job.id)},
+                )
+                continue
+            LOGGER.info(
+                "Marked job as RUNNING",
+                extra={"job_id": str(job.id), "attempt": marked.attempts},
+            )
 
-    def _ensure_k8s_job_exists(self, job: Job) -> None:
-        selector = f"job-system/job-id={job.id}"
+    def _ensure_k8s_job_exists(self, job: Job, attempt: int) -> bool:
+        selector = f"job-system/job-id={job.id},job-system/attempt={attempt}"
         existing = self.batch_api.list_namespaced_job(
             namespace=self.namespace, label_selector=selector
         )
         if existing.items:
-            return
+            return True
 
-        manifest = _build_k8s_job_manifest(job, self.namespace)
+        manifest = _build_k8s_job_manifest(job, self.namespace, attempt)
         try:
             created = self.batch_api.create_namespaced_job(
                 namespace=self.namespace, body=manifest
             )
             LOGGER.info(
                 "Created Kubernetes Job for workload",
-                extra={"job_id": str(job.id), "k8s_job_name": created.metadata.name},
+                extra={
+                    "job_id": str(job.id),
+                    "k8s_job_name": created.metadata.name,
+                    "attempt": attempt,
+                },
             )
+            return True
         except ApiException as exc:
+            if exc.status == 409:
+                # Safe on restart/race: job already exists for this attempt.
+                return True
             LOGGER.exception(
                 "Failed to create Kubernetes Job", extra={"job_id": str(job.id)}
             )
             self.repo.update_job_status(
                 job.id, "FAILED", error=f"k8s job create failed: {exc.reason}"
             )
+            return False
 
     def _reconcile_running_jobs(self) -> None:
         running_jobs = self.repo.list_jobs(
             status="RUNNING", limit=self.running_scan_limit
         )
         for job in running_jobs:
-            k8s_job = self._get_k8s_job_for_job_id(job.id)
+            k8s_job = self._get_k8s_job_for_job_id(job.id, job.attempts)
+            if self._is_timed_out(job):
+                self._handle_timeout(job, k8s_job)
+                continue
             if not k8s_job:
+                self.repo.mark_job_terminal(
+                    job.id, "FAILED", error="k8s job missing for running state"
+                )
+                LOGGER.warning(
+                    "Marked RUNNING job as FAILED because backing Kubernetes Job was missing",
+                    extra={"job_id": str(job.id), "attempt": job.attempts},
+                )
                 continue
 
             k8s_status = k8s_job.status
@@ -155,14 +184,36 @@ class Scheduler:
 
             if k8s_status and (k8s_status.failed or 0) > 0:
                 error = self._extract_failure_reason(k8s_status)
-                self.repo.mark_job_terminal(job.id, "FAILED", error=error)
-                LOGGER.info(
-                    "Marked job as FAILED",
-                    extra={"job_id": str(job.id), "error": error},
-                )
+                if job.attempts < job.max_retries:
+                    next_retry_at = compute_next_retry_at(
+                        attempts_completed=job.attempts,
+                        backoff_seconds=job.backoff_seconds,
+                    )
+                    self.repo.mark_job_for_retry(
+                        job.id,
+                        error=error,
+                        next_retry_at=next_retry_at,
+                    )
+                    LOGGER.info(
+                        "Requeued failed job for retry",
+                        extra={
+                            "job_id": str(job.id),
+                            "attempt": job.attempts,
+                            "max_retries": job.max_retries,
+                            "next_retry_at": next_retry_at.isoformat(),
+                        },
+                    )
+                else:
+                    self.repo.mark_job_terminal(job.id, "FAILED", error=error)
+                    LOGGER.info(
+                        "Marked job as FAILED",
+                        extra={"job_id": str(job.id), "error": error},
+                    )
 
-    def _get_k8s_job_for_job_id(self, job_id: UUID) -> client.V1Job | None:
-        selector = f"job-system/job-id={job_id}"
+    def _get_k8s_job_for_job_id(
+        self, job_id: UUID, attempt: int
+    ) -> client.V1Job | None:
+        selector = f"job-system/job-id={job_id},job-system/attempt={attempt}"
         jobs = self.batch_api.list_namespaced_job(
             namespace=self.namespace, label_selector=selector
         )
@@ -178,6 +229,32 @@ class Scheduler:
             if condition.type == "Failed":
                 return condition.message or condition.reason or "Job failed"
         return "Job failed"
+
+    @staticmethod
+    def _is_timed_out(job: Job) -> bool:
+        if not job.timeout_seconds or not job.started_at:
+            return False
+        now = datetime.now(timezone.utc)
+        return now >= (job.started_at + timedelta(seconds=job.timeout_seconds))
+
+    def _handle_timeout(self, job: Job, k8s_job: client.V1Job | None) -> None:
+        if k8s_job:
+            try:
+                self.batch_api.delete_namespaced_job(
+                    name=k8s_job.metadata.name,
+                    namespace=self.namespace,
+                    propagation_policy="Background",
+                )
+            except ApiException:
+                LOGGER.exception(
+                    "Failed deleting timed-out Kubernetes Job",
+                    extra={"job_id": str(job.id), "attempt": job.attempts},
+                )
+        self.repo.mark_job_terminal(job.id, "FAILED", error="timeout")
+        LOGGER.warning(
+            "Marked job as FAILED due to timeout",
+            extra={"job_id": str(job.id), "attempt": job.attempts},
+        )
 
 
 def main() -> None:

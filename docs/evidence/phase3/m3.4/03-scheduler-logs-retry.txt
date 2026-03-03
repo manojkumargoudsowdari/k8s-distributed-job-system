@@ -1,0 +1,11 @@
+2026-03-03 21:44:58,305 INFO Loaded in-cluster Kubernetes config
+2026-03-03 21:44:58,306 INFO Scheduler started
+2026-03-03 21:45:13,483 INFO Created Kubernetes Job for workload
+2026-03-03 21:45:13,489 INFO Marked job as RUNNING
+2026-03-03 21:45:19,542 INFO Requeued failed job for retry
+2026-03-03 21:45:25,561 INFO Created Kubernetes Job for workload
+2026-03-03 21:45:25,566 INFO Marked job as RUNNING
+2026-03-03 21:45:31,611 INFO Requeued failed job for retry
+2026-03-03 21:45:46,656 INFO Created Kubernetes Job for workload
+2026-03-03 21:45:46,659 INFO Marked job as RUNNING
+2026-03-03 21:45:52,712 INFO Marked job as FAILED

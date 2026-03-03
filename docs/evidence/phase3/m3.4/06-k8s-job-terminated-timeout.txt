@@ -1,0 +1,5 @@
+# kubectl get jobs -l job-system/job-id=c17e1cf4-9672-448d-82e3-d5521660edb0 -o wide
+
+# kubectl get pods -l job-system/job-id=c17e1cf4-9672-448d-82e3-d5521660edb0 -o wide
+NAME                       READY   STATUS        RESTARTS   AGE   IP            NODE                         NOMINATED NODE   READINESS GATES
+js-job-c17e1cf4-a1-lbs5q   1/1     Terminating   0          16s   10.244.0.35   ai-infra-lab-control-plane   <none>           <none>
