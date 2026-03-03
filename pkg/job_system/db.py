@@ -115,7 +115,48 @@ class JobRepository:
             rows = cur.fetchall()
         return [_row_to_job(row) for row in rows]
 
-    def update_job_status(self, job_id: UUID, status: str, error: str | None = None) -> Job | None:
+    def mark_job_running(self, job_id: UUID) -> Job | None:
+        now = datetime.now(timezone.utc)
+        query = """
+        UPDATE jobs
+        SET status = 'RUNNING',
+            updated_at = %(updated_at)s,
+            started_at = COALESCE(started_at, %(updated_at)s),
+            attempts = attempts + 1
+        WHERE id = %(id)s AND status = 'QUEUED'
+        RETURNING *
+        """
+        with self.pool.connection() as conn, conn.cursor() as cur:
+            cur.execute(query, {"id": job_id, "updated_at": now})
+            row = cur.fetchone()
+            conn.commit()
+        return _row_to_job(row) if row else None
+
+    def mark_job_terminal(
+        self, job_id: UUID, status: str, error: str | None = None
+    ) -> Job | None:
+        now = datetime.now(timezone.utc)
+        query = """
+        UPDATE jobs
+        SET status = %(status)s,
+            last_error = %(error)s,
+            updated_at = %(updated_at)s,
+            finished_at = COALESCE(finished_at, %(updated_at)s)
+        WHERE id = %(id)s AND status = 'RUNNING'
+        RETURNING *
+        """
+        with self.pool.connection() as conn, conn.cursor() as cur:
+            cur.execute(
+                query,
+                {"id": job_id, "status": status, "error": error, "updated_at": now},
+            )
+            row = cur.fetchone()
+            conn.commit()
+        return _row_to_job(row) if row else None
+
+    def update_job_status(
+        self, job_id: UUID, status: str, error: str | None = None
+    ) -> Job | None:
         now = datetime.now(timezone.utc)
         query = """
         UPDATE jobs
@@ -128,7 +169,10 @@ class JobRepository:
         RETURNING *
         """
         with self.pool.connection() as conn, conn.cursor() as cur:
-            cur.execute(query, {"id": job_id, "status": status, "error": error, "updated_at": now})
+            cur.execute(
+                query,
+                {"id": job_id, "status": status, "error": error, "updated_at": now},
+            )
             row = cur.fetchone()
             conn.commit()
         return _row_to_job(row) if row else None

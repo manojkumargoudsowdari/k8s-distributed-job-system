@@ -588,6 +588,52 @@ Evidence:
 - `docs/evidence/phase3/m3.2/runbook.md`
 - `docs/evidence/phase3/m3.2/commands.txt`
 
+## 15) Phase 3 M3.3 - Scheduler Dispatch + Completion Tracking
+
+What changed:
+
+- Added scheduler service:
+  - `services/scheduler/main.py`
+  - `services/scheduler/requirements.txt`
+  - `services/scheduler/__init__.py`
+- Added scheduler image definition:
+  - `Dockerfile.scheduler`
+- Added scheduler RBAC + deployment manifests:
+  - `k8s/job-system/scheduler-serviceaccount.yaml`
+  - `k8s/job-system/scheduler-role.yaml`
+  - `k8s/job-system/scheduler-rolebinding.yaml`
+  - `k8s/job-system/scheduler-deployment.yaml`
+- Extended DB layer for scheduler-safe transitions:
+  - `pkg/job_system/db.py`
+    - `mark_job_running` (`QUEUED -> RUNNING`, increments attempts)
+    - `mark_job_terminal` (`RUNNING -> SUCCEEDED/FAILED`)
+
+What was proven:
+
+- Submitting a success workload via API produced:
+  - DB row in `QUEUED`
+  - Scheduler-created Kubernetes Job labeled with `job-system/job-id=<job_id>`
+  - API-observed transition `RUNNING -> SUCCEEDED`
+- Submitting a failing workload via API produced:
+  - Scheduler-created Kubernetes Job
+  - API-observed transition to `FAILED`
+  - Failure reason persisted in `last_error`
+- DB query confirms both jobs with transition timestamps (`created_at`, `started_at`, `finished_at`) and attempts.
+
+Evidence:
+
+- `docs/evidence/phase3/m3.3/outputs/01-submit-job-succeeds.txt`
+- `docs/evidence/phase3/m3.3/outputs/02-kubectl-get-jobs.txt`
+- `docs/evidence/phase3/m3.3/outputs/03-kubectl-describe-job.txt`
+- `docs/evidence/phase3/m3.3/outputs/04-kubectl-logs-job-pod.txt`
+- `docs/evidence/phase3/m3.3/outputs/05-api-get-job-running.txt`
+- `docs/evidence/phase3/m3.3/outputs/06-api-get-job-succeeded.txt`
+- `docs/evidence/phase3/m3.3/outputs/07-db-state-transitions.txt`
+- `docs/evidence/phase3/m3.3/outputs/08-submit-job-fails.txt`
+- `docs/evidence/phase3/m3.3/outputs/09-api-get-job-failed.txt`
+- `docs/evidence/phase3/m3.3/runbook.md`
+- `docs/evidence/phase3/m3.3/commands.txt`
+
 ## Notes
 
 Full raw outputs are stored in `docs/evidence/`:
