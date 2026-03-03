@@ -1,0 +1,2 @@
+NAME              STATUS    COMPLETIONS   DURATION   AGE   CONTAINERS   IMAGES         SELECTOR
+js-job-98bddb8b   Running   0/1           11s        11s   task         busybox:1.36   batch.kubernetes.io/controller-uid=608467fc-854f-4dd7-a77d-47321c966a8b

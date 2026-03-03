@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: job-system-scheduler
+  namespace: default
+  labels:
+    app: job-system-scheduler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: job-system-scheduler
+  template:
+    metadata:
+      labels:
+        app: job-system-scheduler
+    spec:
+      serviceAccountName: job-system-scheduler
+      containers:
+        - name: scheduler
+          image: job-system-scheduler:0.1.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DATABASE_URL
+              value: postgresql://jobs:jobs@job-system-postgres.default.svc.cluster.local:5432/jobs
+            - name: SCHEDULER_NAMESPACE
+              value: default
+            - name: SCHEDULER_POLL_INTERVAL_SECONDS
+              value: "3"
+            - name: SCHEDULER_DISPATCH_BATCH_SIZE
+              value: "5"
+            - name: SCHEDULER_RUNNING_SCAN_LIMIT
+              value: "50"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
