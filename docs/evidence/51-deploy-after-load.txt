@@ -1,0 +1,2 @@
+NAME           READY   UP-TO-DATE   AVAILABLE   AGE     CONTAINERS     IMAGES                       SELECTOR
+model-server   2/2     2            2           5h34m   model-server   fastapi-model-server:0.1.1   app=model-server

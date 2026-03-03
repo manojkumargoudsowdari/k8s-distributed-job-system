@@ -1,4 +1,4 @@
-# Deployment skeleton for web
+# Baseline web Deployment (nginx)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -15,10 +15,8 @@ spec:
         app: web
     spec:
       containers:
-        - name: stress
-          image: polinux/stress
-          command: ["stress"]
-          args: ["--vm", "1", "--vm-bytes", "300M", "--vm-hang", "1"]
+        - name: nginx
+          image: nginx:latest
           ports:
             - containerPort: 80
           resources:
@@ -27,4 +25,4 @@ spec:
               memory: "128Mi"
             limits:
               cpu: "500m"
-              memory: "128Mi"
+              memory: "512Mi"

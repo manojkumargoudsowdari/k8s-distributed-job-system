@@ -1,42 +1,73 @@
 # k8s-distributed-job-system
 
-Distributed job processing system for Kubernetes learning focused on scheduling, scaling, and failure analysis.
+Distributed systems learning repo for Kubernetes scheduling, pressure behavior, and model-serving operations.
 
-## Cluster
+## Repository Layout
 
-- Cluster name: `ai-infra-lab`
-- Context: `kind-ai-infra-lab`
+- Baseline web manifests:
+  - `k8s/deployment-web.yaml`
+  - `k8s/service-web-svc.yaml`
+- Scheduling experiments:
+  - `k8s/experiments/scheduling/*`
+- Pressure / QoS / eviction experiments:
+  - `k8s/experiments/pressure/*`
+- Model serving stack:
+  - `k8s/model-serving/*`
+- Evidence and reflections:
+  - `docs/reflection.md`
+  - `docs/evidence/*`
 
-`kubectl get nodes -o wide`:
+## Local Quickstart (Kind + Model Serving)
 
-```text
-NAME                         STATUS   ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE                         KERNEL-VERSION                     CONTAINER-RUNTIME
-ai-infra-lab-control-plane   Ready    control-plane   96s   v1.32.2   172.18.0.2    <none>        Debian GNU/Linux 12 (bookworm)   6.6.87.2-microsoft-standard-WSL2   containerd://2.0.2
+Prerequisites:
+
+- `kind`
+- `kubectl`
+- `docker`
+- existing local cluster name: `ai-infra-lab`
+
+Build and load image:
+
+```bash
+docker build -t fastapi-model-server:0.1.1 .
+kind load docker-image fastapi-model-server:0.1.1 --name ai-infra-lab
 ```
 
-## What Was Built
+Apply serving resources:
 
-- Deployment manifest: `k8s/deployment-web.yaml`
-- Service manifest: `k8s/service-web-svc.yaml`
-- Evidence and reflection: `docs/reflection.md`
-- Raw command outputs: `docs/evidence/`
+```bash
+kubectl apply -f k8s/model-serving/model-server-deployment.yaml
+kubectl apply -f k8s/model-serving/model-server-service.yaml
+kubectl apply -f k8s/model-serving/model-server-ingress.yaml
+kubectl apply -f k8s/model-serving/model-server-hpa.yaml
+```
 
-## Forced Failure: Insufficient Resources
+Force HPA scale-up:
 
-- I intentionally set pod requests/limits to `cpu: "10"` and `memory: "20Gi"`.
-- Result: pod stayed `Pending`.
-- Scheduler event:
-  `0/1 nodes are available: 1 Insufficient memory`.
+```bash
+kubectl apply -f k8s/model-serving/model-server-loadgen-job.yaml
+kubectl get hpa model-server-hpa -w
+```
 
-## Fix Applied
+Verify service + ingress:
 
-- Restored schedulable resources:
-  - Requests: `cpu: "100m"`, `memory: "128Mi"`
-  - Limits: `cpu: "500m"`, `memory: "512Mi"`
-- Re-applied manifest and rollout succeeded with `3/3` available replicas.
+```bash
+kubectl run curl-svc --rm -i --restart=Never --image=curlimages/curl:8.12.1 --command -- sh -c "curl -s http://model-server-svc.default.svc.cluster.local/healthz"
+kubectl run curl-ing --rm -i --restart=Never --image=curlimages/curl:8.12.1 --command -- sh -c "curl -s -H 'Host: model.local' http://ingress-nginx-controller.ingress-nginx.svc.cluster.local/healthz"
+```
 
-## Key Takeaways
+Observe HPA up/down:
 
-- Scheduler decisions are governed first by `requests` against allocatable node capacity.
-- `limits` cap runtime usage, but unschedulable `requests` block placement before container start.
-- `kubectl describe pod` and Events provide the exact scheduling failure reason and should drive debugging.
+```bash
+kubectl get hpa model-server-hpa -o wide
+kubectl describe hpa model-server-hpa
+kubectl get deploy model-server -o wide
+kubectl get pods -l app=model-server -o wide
+```
+
+## Success Criteria
+
+- Model server responds on `/healthz` through service and ingress.
+- HPA scales up under load (`2 -> 4 -> 6`).
+- HPA scales down after load completion (returns to min replicas).
+- Evidence is captured under `docs/evidence/` and summarized in `docs/reflection.md`.

@@ -1,0 +1,10 @@
+TIMESTAMP=2026-03-03T13:22:10.5379087-05:00
+NAME               REFERENCE                 TARGETS         MINPODS   MAXPODS   REPLICAS   AGE
+model-server-hpa   Deployment/model-server   cpu: 448%/60%   2         6         2          5h24m
+NAME           READY   UP-TO-DATE   AVAILABLE   AGE     CONTAINERS     IMAGES                       SELECTOR
+model-server   2/4     4            2           5h24m   model-server   fastapi-model-server:0.1.1   app=model-server
+NAME                            READY   STATUS    RESTARTS        AGE   IP            NODE                         NOMINATED NODE   READINESS GATES
+model-server-56595589db-4pcsh   0/1     Running   0               9s    10.244.0.19   ai-infra-lab-control-plane   <none>           <none>
+model-server-56595589db-4w98s   1/1     Running   1 (3m39s ago)   42m   10.244.0.8    ai-infra-lab-control-plane   <none>           <none>
+model-server-56595589db-687b4   0/1     Running   0               9s    10.244.0.18   ai-infra-lab-control-plane   <none>           <none>
+model-server-56595589db-pgs4t   1/1     Running   1 (3m39s ago)   41m   10.244.0.9    ai-infra-lab-control-plane   <none>           <none>

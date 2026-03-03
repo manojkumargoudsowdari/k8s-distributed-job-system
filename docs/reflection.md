@@ -469,11 +469,11 @@ Evidence:
 - `35-model-serving-ingress-healthz.txt`
 - `36-post-cleanup-pods.txt`
 
-## 12) HPA Scale-Up Assessment (Load Generator)
+## 12) HPA Scale-Up/Down Assessment (Load Generator)
 
 Goal:
 
-- Force HPA CPU target breach and capture scale-up evidence.
+- Force HPA CPU target breach and capture both scale-up and scale-down evidence.
 
 Changes:
 
@@ -486,24 +486,27 @@ Changes:
 
 Observed scaling:
 
-- HPA scaled `model-server` from `2` -> `4` -> `6` replicas.
+- Baseline started at `2` replicas.
+- HPA scaled `model-server` from `2` -> `4` -> `6` replicas under load.
 - HPA reached max replica bound (`maxReplicas: 6`) with `ScalingLimited=True`.
-- Deployment confirmed at `6/6` available pods.
+- After load completed and stabilization elapsed, HPA scaled back down to `2`.
 
 Key evidence:
 
-- Time-series loop snapshots:
-  - `37-hpa-scale-loop-1.txt` ... `37-hpa-scale-loop-18.txt`
-- HPA describe with rescale events:
+- Baseline + final snapshots:
+  - `46-hpa-before-load.txt`
+  - `50-hpa-after-load.txt`
+  - `51-deploy-after-load.txt`
+  - `52-pods-after-load.txt`
+- Timeline snapshots:
+  - `49-hpa-timeline-1.txt` ... `49-hpa-timeline-56.txt`
+  - `54-hpa-scale-timeline.md`
+- HPA events and conditions:
+  - `55-hpa-describe-final.txt`
+  - `53-events-hpa-updown-last-250.txt`
+- Previous loadgen run evidence (still valid):
   - `38-hpa-describe-after-loadgen.txt`
-- Cluster events containing:
-  - `SuccessfulRescale`
-  - `ScalingReplicaSet`
   - `39-events-after-loadgen-last-200.txt`
-- Final state:
-  - `42-model-server-deploy-after-hpa.txt`
-  - `43-model-server-pods-after-hpa.txt`
-  - `45-hpa-final-wide.txt`
 
 Operational note:
 
@@ -560,3 +563,13 @@ Full raw outputs are stored in `docs/evidence/`:
 - `43-model-server-pods-after-hpa.txt`
 - `44-model-server-top-pods-after-scale.txt`
 - `45-hpa-final-wide.txt`
+- `46-hpa-before-load.txt`
+- `47-deploy-before-load.txt`
+- `48-pods-before-load.txt`
+- `49-hpa-timeline-1.txt` ... `49-hpa-timeline-56.txt`
+- `50-hpa-after-load.txt`
+- `51-deploy-after-load.txt`
+- `52-pods-after-load.txt`
+- `53-events-hpa-updown-last-250.txt`
+- `54-hpa-scale-timeline.md`
+- `55-hpa-describe-final.txt`
