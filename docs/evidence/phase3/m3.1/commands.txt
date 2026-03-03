@@ -1,0 +1,30 @@
+# M3.1 Commands
+
+# 0) prep
+$base='d:\Work\Code\Kubernetes\k8s-distributed-job-system\docs\evidence\phase3\m3.1'
+$out="$base\outputs"
+
+# 1) start postgres
+docker rm -f job-system-postgres
+docker run --name job-system-postgres -e POSTGRES_USER=jobuser -e POSTGRES_PASSWORD=jobpass -e POSTGRES_DB=jobdb -p 5433:5432 -d postgres:16-alpine
+
+# 2) connectivity
+docker exec job-system-postgres psql -U jobuser -d jobdb -c "SELECT version();"
+
+# 3) apply migration
+Get-Content "db/migrations/001_create_jobs.sql" | docker exec -i job-system-postgres psql -U jobuser -d jobdb
+
+# 4) inspect schema
+docker exec job-system-postgres psql -U jobuser -d jobdb -c "\d+ jobs"
+
+# 5) inspect indexes
+docker exec job-system-postgres psql -U jobuser -d jobdb -c "SELECT schemaname, tablename, indexname, indexdef FROM pg_indexes WHERE tablename IN ('jobs','job_attempts') ORDER BY tablename, indexname;"
+
+# 6) sample insert/select + transitions
+# (same SQL used in evidence capture)
+
+# 7) optional repository smoke
+python -m pip install -r requirements-phase3.txt
+$env:PYTHONPATH='d:\Work\Code\Kubernetes\k8s-distributed-job-system'
+$env:JOB_SYSTEM_DB_DSN='postgresql://jobuser:jobpass@localhost:5433/jobdb'
+python scripts/m3_1_db_smoke.py

@@ -1,0 +1,12 @@
+ schemaname |  tablename   |               indexname                |                                                        indexdef                                                        
+------------+--------------+----------------------------------------+------------------------------------------------------------------------------------------------------------------------
+ public     | job_attempts | idx_job_attempts_job_id                | CREATE INDEX idx_job_attempts_job_id ON public.job_attempts USING btree (job_id)
+ public     | job_attempts | job_attempts_job_id_attempt_number_key | CREATE UNIQUE INDEX job_attempts_job_id_attempt_number_key ON public.job_attempts USING btree (job_id, attempt_number)
+ public     | job_attempts | job_attempts_pkey                      | CREATE UNIQUE INDEX job_attempts_pkey ON public.job_attempts USING btree (id)
+ public     | jobs         | idx_jobs_queue_status                  | CREATE INDEX idx_jobs_queue_status ON public.jobs USING btree (queue, status)
+ public     | jobs         | idx_jobs_status_created_at             | CREATE INDEX idx_jobs_status_created_at ON public.jobs USING btree (status, created_at DESC)
+ public     | jobs         | idx_jobs_updated_at                    | CREATE INDEX idx_jobs_updated_at ON public.jobs USING btree (updated_at DESC)
+ public     | jobs         | jobs_idempotency_key_key               | CREATE UNIQUE INDEX jobs_idempotency_key_key ON public.jobs USING btree (idempotency_key)
+ public     | jobs         | jobs_pkey                              | CREATE UNIQUE INDEX jobs_pkey ON public.jobs USING btree (id)
+(8 rows)
+

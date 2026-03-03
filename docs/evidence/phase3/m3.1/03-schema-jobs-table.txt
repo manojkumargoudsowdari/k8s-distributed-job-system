@@ -1,0 +1,36 @@
+                                                            Table "public.jobs"
+     Column      |           Type           | Collation | Nullable |     Default     | Storage  | Compression | Stats target | Description 
+-----------------+--------------------------+-----------+----------+-----------------+----------+-------------+--------------+-------------
+ id              | uuid                     |           | not null |                 | plain    |             |              | 
+ idempotency_key | text                     |           |          |                 | extended |             |              | 
+ queue           | text                     |           | not null | 'default'::text | extended |             |              | 
+ image           | text                     |           | not null |                 | extended |             |              | 
+ command         | text[]                   |           | not null | '{}'::text[]    | extended |             |              | 
+ args            | text[]                   |           | not null | '{}'::text[]    | extended |             |              | 
+ env             | jsonb                    |           | not null | '{}'::jsonb     | extended |             |              | 
+ resources       | jsonb                    |           | not null | '{}'::jsonb     | extended |             |              | 
+ priority        | integer                  |           | not null | 0               | plain    |             |              | 
+ max_retries     | integer                  |           | not null | 0               | plain    |             |              | 
+ backoff_seconds | integer                  |           | not null | 5               | plain    |             |              | 
+ timeout_seconds | integer                  |           |          |                 | plain    |             |              | 
+ status          | text                     |           | not null |                 | extended |             |              | 
+ attempts        | integer                  |           | not null | 0               | plain    |             |              | 
+ desired_status  | text                     |           |          |                 | extended |             |              | 
+ last_error      | text                     |           |          |                 | extended |             |              | 
+ created_at      | timestamp with time zone |           | not null | now()           | plain    |             |              | 
+ queued_at       | timestamp with time zone |           |          |                 | plain    |             |              | 
+ started_at      | timestamp with time zone |           |          |                 | plain    |             |              | 
+ finished_at     | timestamp with time zone |           |          |                 | plain    |             |              | 
+ updated_at      | timestamp with time zone |           | not null | now()           | plain    |             |              | 
+Indexes:
+    "jobs_pkey" PRIMARY KEY, btree (id)
+    "idx_jobs_queue_status" btree (queue, status)
+    "idx_jobs_status_created_at" btree (status, created_at DESC)
+    "idx_jobs_updated_at" btree (updated_at DESC)
+    "jobs_idempotency_key_key" UNIQUE CONSTRAINT, btree (idempotency_key)
+Check constraints:
+    "jobs_status_check" CHECK (status = ANY (ARRAY['QUEUED'::text, 'RUNNING'::text, 'SUCCEEDED'::text, 'FAILED'::text, 'CANCELED'::text]))
+Referenced by:
+    TABLE "job_attempts" CONSTRAINT "job_attempts_job_id_fkey" FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE
+Access method: heap
+
