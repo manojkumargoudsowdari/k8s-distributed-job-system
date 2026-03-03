@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID, uuid4
 
+from psycopg.errors import UniqueViolation
 from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 from psycopg_pool import ConnectionPool
@@ -73,9 +74,18 @@ class JobRepository:
             "updated_at": now,
         }
         with self.pool.connection() as conn, conn.cursor() as cur:
-            cur.execute(query, params)
-            row = cur.fetchone()
-            conn.commit()
+            try:
+                cur.execute(query, params)
+                row = cur.fetchone()
+                conn.commit()
+            except UniqueViolation:
+                conn.rollback()
+                if not idempotency_key:
+                    raise
+                existing = self.get_job_by_idempotency_key(idempotency_key)
+                if existing:
+                    return existing
+                raise
         return _row_to_job(row)
 
     def get_job(self, job_id: UUID) -> Job | None:

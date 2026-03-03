@@ -116,6 +116,13 @@ def get_repository() -> JobRepository:
     return _repository()
 
 
+@app.on_event("shutdown")
+def shutdown_event() -> None:
+    if _repository.cache_info().currsize > 0:
+        _repository().close()
+        _repository.cache_clear()
+
+
 @app.get("/healthz")
 def healthz() -> dict[str, str]:
     return {"status": "ok"}
@@ -150,6 +157,11 @@ def submit_job(
         timeout_seconds=spec.timeout_seconds,
         idempotency_key=idempotency_key,
     )
+    if idempotency_key and _job_fingerprint(created) != _job_spec_fingerprint(spec):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Idempotency-Key conflict: request body differs from existing job",
+        )
     return JobSubmitResponse(job_id=created.id, status=created.status)
 
 
@@ -185,4 +197,3 @@ def cancel_job(job_id: UUID, repo: JobRepository = Depends(get_repository)) -> C
     if not updated:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to cancel job")
     return CancelResponse(job_id=updated.id, status=updated.status)
-

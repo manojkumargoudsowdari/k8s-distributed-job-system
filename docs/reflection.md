@@ -574,6 +574,7 @@ What was proven:
 - `GET /jobs/{job_id}` returns full persisted job payload.
 - `GET /jobs?status=QUEUED&limit=10` filters as expected.
 - Postgres row verification confirms stored `idempotency_key`, `status`, and retry/backoff fields.
+- `POST /jobs/{job_id}/cancel` is implemented for `QUEUED` jobs in M3.2 as an immediate DB status transition; controller-driven cancellation semantics are deferred to M3.3.
 
 Evidence:
 
