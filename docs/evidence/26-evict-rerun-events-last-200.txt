@@ -1,0 +1,200 @@
+75s         Warning   SystemOOM                   node/ai-infra-lab-control-plane             System OOM encountered, victim process: stress, pid: 12994
+75s         Warning   SystemOOM                   node/ai-infra-lab-control-plane             System OOM encountered, victim process: stress, pid: 13173
+75s         Warning   SystemOOM                   node/ai-infra-lab-control-plane             System OOM encountered, victim process: stress, pid: 13216
+75s         Warning   SystemOOM                   node/ai-infra-lab-control-plane             System OOM encountered, victim process: stress, pid: 11934
+75s         Warning   SystemOOM                   node/ai-infra-lab-control-plane             System OOM encountered, victim process: stress, pid: 12874
+75s         Warning   SystemOOM                   node/ai-infra-lab-control-plane             System OOM encountered, victim process: stress, pid: 13345
+75s         Warning   SystemOOM                   node/ai-infra-lab-control-plane             System OOM encountered, victim process: stress, pid: 13061
+75s         Normal    NodeHasSufficientMemory     node/ai-infra-lab-control-plane             Node ai-infra-lab-control-plane status is now: NodeHasSufficientMemory
+75s         Normal    NodeHasNoDiskPressure       node/ai-infra-lab-control-plane             Node ai-infra-lab-control-plane status is now: NodeHasNoDiskPressure
+75s         Normal    NodeHasSufficientPID        node/ai-infra-lab-control-plane             Node ai-infra-lab-control-plane status is now: NodeHasSufficientPID
+70s         Normal    RegisteredNode              node/ai-infra-lab-control-plane             Node ai-infra-lab-control-plane event: Registered Node ai-infra-lab-control-plane in Controller
+56s         Normal    NodeReady                   node/ai-infra-lab-control-plane             Node ai-infra-lab-control-plane status is now: NodeReady
+46s         Normal    Scheduled                   pod/qos-best-effort                         Successfully assigned default/qos-best-effort to ai-infra-lab-control-plane
+46s         Normal    Scheduled                   pod/qos-guaranteed                          Successfully assigned default/qos-guaranteed to ai-infra-lab-control-plane
+46s         Normal    Scheduled                   pod/qos-burstable                           Successfully assigned default/qos-burstable to ai-infra-lab-control-plane
+45s         Normal    Pulling                     pod/qos-guaranteed                          Pulling image "polinux/stress"
+45s         Normal    SuccessfulCreate            replicaset/qos-pressure-deploy-647b468b7d   Created pod: qos-pressure-deploy-647b468b7d-r2b8c
+45s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-bpr8n    Successfully assigned default/qos-pressure-deploy-647b468b7d-bpr8n to ai-infra-lab-control-plane
+45s         Normal    Pulling                     pod/qos-pressure-deploy-647b468b7d-bpr8n    Pulling image "polinux/stress"
+45s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-r2b8c    Successfully assigned default/qos-pressure-deploy-647b468b7d-r2b8c to ai-infra-lab-control-plane
+45s         Normal    Pulling                     pod/qos-pressure-deploy-647b468b7d-6vn4m    Pulling image "polinux/stress"
+45s         Normal    Pulling                     pod/qos-burstable                           Pulling image "polinux/stress"
+45s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-6vn4m    Successfully assigned default/qos-pressure-deploy-647b468b7d-6vn4m to ai-infra-lab-control-plane
+45s         Normal    Pulling                     pod/qos-pressure-deploy-647b468b7d-gvhsr    Pulling image "polinux/stress"
+45s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-gvhsr    Successfully assigned default/qos-pressure-deploy-647b468b7d-gvhsr to ai-infra-lab-control-plane
+45s         Normal    ScalingReplicaSet           deployment/qos-pressure-deploy              Scaled up replica set qos-pressure-deploy-647b468b7d from 0 to 6
+45s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-fv9nw    Successfully assigned default/qos-pressure-deploy-647b468b7d-fv9nw to ai-infra-lab-control-plane
+45s         Normal    Pulling                     pod/qos-pressure-deploy-647b468b7d-fv9nw    Pulling image "polinux/stress"
+45s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-dkzwn    Successfully assigned default/qos-pressure-deploy-647b468b7d-dkzwn to ai-infra-lab-control-plane
+45s         Normal    SuccessfulCreate            replicaset/qos-pressure-deploy-647b468b7d   Created pod: qos-pressure-deploy-647b468b7d-fv9nw
+45s         Normal    SuccessfulCreate            replicaset/qos-pressure-deploy-647b468b7d   Created pod: qos-pressure-deploy-647b468b7d-dkzwn
+45s         Normal    SuccessfulCreate            replicaset/qos-pressure-deploy-647b468b7d   Created pod: qos-pressure-deploy-647b468b7d-bpr8n
+45s         Normal    SuccessfulCreate            replicaset/qos-pressure-deploy-647b468b7d   Created pod: qos-pressure-deploy-647b468b7d-gvhsr
+45s         Normal    SuccessfulCreate            replicaset/qos-pressure-deploy-647b468b7d   Created pod: qos-pressure-deploy-647b468b7d-6vn4m
+45s         Normal    Pulling                     pod/qos-best-effort                         Pulling image "polinux/stress"
+45s         Normal    Pulling                     pod/qos-pressure-deploy-647b468b7d-dkzwn    Pulling image "polinux/stress"
+43s         Normal    Started                     pod/qos-best-effort                         Started container stress
+43s         Normal    Pulled                      pod/qos-best-effort                         Successfully pulled image "polinux/stress" in 2.459s (2.459s including waiting). Image size: 4041495 bytes.
+43s         Normal    Created                     pod/qos-best-effort                         Created container: stress
+42s         Normal    Pulled                      pod/qos-burstable                           Successfully pulled image "polinux/stress" in 484ms (2.702s including waiting). Image size: 4041495 bytes.
+42s         Normal    Started                     pod/qos-guaranteed                          Started container stress
+42s         Normal    Created                     pod/qos-pressure-deploy-647b468b7d-fv9nw    Created container: stress
+42s         Normal    Started                     pod/qos-pressure-deploy-647b468b7d-fv9nw    Started container stress
+42s         Normal    Pulled                      pod/qos-guaranteed                          Successfully pulled image "polinux/stress" in 383ms (2.959s including waiting). Image size: 4041495 bytes.
+42s         Normal    Started                     pod/qos-burstable                           Started container stress
+42s         Normal    Created                     pod/qos-burstable                           Created container: stress
+42s         Normal    Created                     pod/qos-guaranteed                          Created container: stress
+42s         Normal    Pulled                      pod/qos-pressure-deploy-647b468b7d-fv9nw    Successfully pulled image "polinux/stress" in 442ms (3.236s including waiting). Image size: 4041495 bytes.
+41s         Normal    Pulled                      pod/qos-pressure-deploy-647b468b7d-6vn4m    Successfully pulled image "polinux/stress" in 453ms (3.666s including waiting). Image size: 4041495 bytes.
+41s         Normal    Created                     pod/qos-pressure-deploy-647b468b7d-6vn4m    Created container: stress
+41s         Normal    Started                     pod/qos-pressure-deploy-647b468b7d-6vn4m    Started container stress
+41s         Normal    Pulled                      pod/qos-pressure-deploy-647b468b7d-dkzwn    Successfully pulled image "polinux/stress" in 377ms (4.041s including waiting). Image size: 4041495 bytes.
+41s         Normal    Started                     pod/qos-pressure-deploy-647b468b7d-dkzwn    Started container stress
+41s         Normal    Created                     pod/qos-pressure-deploy-647b468b7d-dkzwn    Created container: stress
+40s         Normal    Pulled                      pod/qos-pressure-deploy-647b468b7d-r2b8c    Successfully pulled image "polinux/stress" in 613ms (4.654s including waiting). Image size: 4041495 bytes.
+40s         Normal    Created                     pod/qos-pressure-deploy-647b468b7d-bpr8n    Created container: stress
+40s         Normal    Pulled                      pod/qos-pressure-deploy-647b468b7d-bpr8n    Successfully pulled image "polinux/stress" in 534ms (5.187s including waiting). Image size: 4041495 bytes.
+39s         Normal    Started                     pod/qos-pressure-deploy-647b468b7d-gvhsr    Started container stress
+39s         Normal    Started                     pod/qos-pressure-deploy-647b468b7d-bpr8n    Started container stress
+39s         Normal    Pulled                      pod/qos-pressure-deploy-647b468b7d-gvhsr    Successfully pulled image "polinux/stress" in 525ms (5.705s including waiting). Image size: 4041495 bytes.
+39s         Normal    Created                     pod/qos-pressure-deploy-647b468b7d-gvhsr    Created container: stress
+34s         Normal    Pulled                      pod/qos-pressure-deploy-647b468b7d-r2b8c    Successfully pulled image "polinux/stress" in 797ms (797ms including waiting). Image size: 4041495 bytes.
+32s         Warning   SystemOOM                   node/ai-infra-lab-control-plane             (combined from similar events): System OOM encountered, victim process: stress, pid: 16671
+31s         Warning   BackOff                     pod/qos-pressure-deploy-647b468b7d-r2b8c    Back-off restarting failed container stress in pod qos-pressure-deploy-647b468b7d-r2b8c_default(aa88fd93-2a20-43f3-af25-4a3631a18922)
+31s         Normal    Killing                     pod/qos-pressure-deploy-647b468b7d-bpr8n    Stopping container stress
+31s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-bpr8n    The node was low on resource: memory. Threshold quantity: 1536Mi, available: 1194248Ki. Container stress was using 1146316Ki, request is 0, has larger consumption of memory.
+28s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-crgbl    Successfully assigned default/qos-pressure-deploy-647b468b7d-crgbl to ai-infra-lab-control-plane
+28s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-x92sv    Successfully assigned default/qos-pressure-deploy-647b468b7d-x92sv to ai-infra-lab-control-plane
+28s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-phfwd    The node had condition: [MemoryPressure].
+28s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-p2stw    The node had condition: [MemoryPressure].
+28s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-p2stw    Successfully assigned default/qos-pressure-deploy-647b468b7d-p2stw to ai-infra-lab-control-plane
+28s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-n427g    The node had condition: [MemoryPressure].
+28s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-n427g    Successfully assigned default/qos-pressure-deploy-647b468b7d-n427g to ai-infra-lab-control-plane
+28s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-crgbl    The node had condition: [MemoryPressure].
+28s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-8m526    The node had condition: [MemoryPressure].
+28s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-8m526    Successfully assigned default/qos-pressure-deploy-647b468b7d-8m526 to ai-infra-lab-control-plane
+28s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-kfj2q    Successfully assigned default/qos-pressure-deploy-647b468b7d-kfj2q to ai-infra-lab-control-plane
+28s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-phfwd    Successfully assigned default/qos-pressure-deploy-647b468b7d-phfwd to ai-infra-lab-control-plane
+28s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-x92sv    The node had condition: [MemoryPressure].
+28s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-5r7kt    The node had condition: [MemoryPressure].
+28s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-5r7kt    Successfully assigned default/qos-pressure-deploy-647b468b7d-5r7kt to ai-infra-lab-control-plane
+28s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-4k8g2    The node had condition: [MemoryPressure].
+28s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-4k8g2    Successfully assigned default/qos-pressure-deploy-647b468b7d-4k8g2 to ai-infra-lab-control-plane
+28s         Normal    SuccessfulCreate            replicaset/qos-pressure-deploy-647b468b7d   Created pod: qos-pressure-deploy-647b468b7d-crgbl
+28s         Normal    SuccessfulCreate            replicaset/qos-pressure-deploy-647b468b7d   Created pod: qos-pressure-deploy-647b468b7d-x92sv
+28s         Normal    SuccessfulCreate            replicaset/qos-pressure-deploy-647b468b7d   Created pod: qos-pressure-deploy-647b468b7d-p2stw
+28s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-kfj2q    The node had condition: [MemoryPressure].
+27s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-g46r4    The node had condition: [MemoryPressure].
+27s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-cshpx    The node had condition: [MemoryPressure].
+27s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-fr6wd    Successfully assigned default/qos-pressure-deploy-647b468b7d-fr6wd to ai-infra-lab-control-plane
+27s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-fr6wd    The node had condition: [MemoryPressure].
+27s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-nfzbk    The node had condition: [MemoryPressure].
+27s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-dfqv5    The node had condition: [MemoryPressure].
+27s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-dfqv5    Successfully assigned default/qos-pressure-deploy-647b468b7d-dfqv5 to ai-infra-lab-control-plane
+27s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-nfzbk    Successfully assigned default/qos-pressure-deploy-647b468b7d-nfzbk to ai-infra-lab-control-plane
+27s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-88g46    Successfully assigned default/qos-pressure-deploy-647b468b7d-88g46 to ai-infra-lab-control-plane
+27s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-g46r4    Successfully assigned default/qos-pressure-deploy-647b468b7d-g46r4 to ai-infra-lab-control-plane
+27s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-88g46    The node had condition: [MemoryPressure].
+27s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-cshpx    Successfully assigned default/qos-pressure-deploy-647b468b7d-cshpx to ai-infra-lab-control-plane
+26s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-tn258    The node had condition: [MemoryPressure].
+26s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-qdtf9    The node had condition: [MemoryPressure].
+26s         Normal    SuccessfulCreate            replicaset/qos-pressure-deploy-647b468b7d   (combined from similar events): Created pod: qos-pressure-deploy-647b468b7d-n8xxk
+26s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-zcht8    Successfully assigned default/qos-pressure-deploy-647b468b7d-zcht8 to ai-infra-lab-control-plane
+26s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-qdtf9    Successfully assigned default/qos-pressure-deploy-647b468b7d-qdtf9 to ai-infra-lab-control-plane
+26s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-ng7xz    The node had condition: [MemoryPressure].
+26s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-ng7xz    Successfully assigned default/qos-pressure-deploy-647b468b7d-ng7xz to ai-infra-lab-control-plane
+26s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-dpj7b    Successfully assigned default/qos-pressure-deploy-647b468b7d-dpj7b to ai-infra-lab-control-plane
+26s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-n8xxk    The node had condition: [MemoryPressure].
+26s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-zcht8    The node had condition: [MemoryPressure].
+26s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-n8xxk    Successfully assigned default/qos-pressure-deploy-647b468b7d-n8xxk to ai-infra-lab-control-plane
+26s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-r2jdr    Successfully assigned default/qos-pressure-deploy-647b468b7d-r2jdr to ai-infra-lab-control-plane
+26s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-r2jdr    The node had condition: [MemoryPressure].
+26s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-tn258    Successfully assigned default/qos-pressure-deploy-647b468b7d-tn258 to ai-infra-lab-control-plane
+26s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-dpj7b    The node had condition: [MemoryPressure].
+25s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-jchg7    The node had condition: [MemoryPressure].
+25s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-5687r    The node had condition: [MemoryPressure].
+25s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-qvmr8    Successfully assigned default/qos-pressure-deploy-647b468b7d-qvmr8 to ai-infra-lab-control-plane
+25s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-jchg7    Successfully assigned default/qos-pressure-deploy-647b468b7d-jchg7 to ai-infra-lab-control-plane
+25s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-qqhl9    The node had condition: [MemoryPressure].
+25s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-qqhl9    Successfully assigned default/qos-pressure-deploy-647b468b7d-qqhl9 to ai-infra-lab-control-plane
+25s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-tkr79    Successfully assigned default/qos-pressure-deploy-647b468b7d-tkr79 to ai-infra-lab-control-plane
+25s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-tkr79    The node had condition: [MemoryPressure].
+25s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-qjnn6    The node had condition: [MemoryPressure].
+25s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-qvmr8    The node had condition: [MemoryPressure].
+25s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-77jhl    The node had condition: [MemoryPressure].
+25s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-5687r    Successfully assigned default/qos-pressure-deploy-647b468b7d-5687r to ai-infra-lab-control-plane
+25s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-77jhl    Successfully assigned default/qos-pressure-deploy-647b468b7d-77jhl to ai-infra-lab-control-plane
+25s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-mqspz    Successfully assigned default/qos-pressure-deploy-647b468b7d-mqspz to ai-infra-lab-control-plane
+25s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-mqspz    The node had condition: [MemoryPressure].
+25s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-wvcqq    Successfully assigned default/qos-pressure-deploy-647b468b7d-wvcqq to ai-infra-lab-control-plane
+25s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-wvcqq    The node had condition: [MemoryPressure].
+25s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-6dlqc    The node had condition: [MemoryPressure].
+25s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-6dlqc    Successfully assigned default/qos-pressure-deploy-647b468b7d-6dlqc to ai-infra-lab-control-plane
+25s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-qjnn6    Successfully assigned default/qos-pressure-deploy-647b468b7d-qjnn6 to ai-infra-lab-control-plane
+24s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-m6vkz    The node had condition: [MemoryPressure].
+24s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-7wq7m    The node had condition: [MemoryPressure].
+24s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-85nrf    The node had condition: [MemoryPressure].
+24s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-sjtll    Successfully assigned default/qos-pressure-deploy-647b468b7d-sjtll to ai-infra-lab-control-plane
+24s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-sjtll    The node had condition: [MemoryPressure].
+24s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-4grb6    The node had condition: [MemoryPressure].
+24s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-gd4wc    Successfully assigned default/qos-pressure-deploy-647b468b7d-gd4wc to ai-infra-lab-control-plane
+24s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-nv6x4    Successfully assigned default/qos-pressure-deploy-647b468b7d-nv6x4 to ai-infra-lab-control-plane
+24s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-nv6x4    The node had condition: [MemoryPressure].
+24s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-85nrf    Successfully assigned default/qos-pressure-deploy-647b468b7d-85nrf to ai-infra-lab-control-plane
+24s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-7wq7m    Successfully assigned default/qos-pressure-deploy-647b468b7d-7wq7m to ai-infra-lab-control-plane
+24s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-7q7qw    The node had condition: [MemoryPressure].
+24s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-7q7qw    Successfully assigned default/qos-pressure-deploy-647b468b7d-7q7qw to ai-infra-lab-control-plane
+24s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-wlgbn    Successfully assigned default/qos-pressure-deploy-647b468b7d-wlgbn to ai-infra-lab-control-plane
+24s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-gd4wc    The node had condition: [MemoryPressure].
+24s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-m6vkz    Successfully assigned default/qos-pressure-deploy-647b468b7d-m6vkz to ai-infra-lab-control-plane
+24s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-4grb6    Successfully assigned default/qos-pressure-deploy-647b468b7d-4grb6 to ai-infra-lab-control-plane
+24s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-lhrhl    The node had condition: [MemoryPressure].
+24s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-lhrhl    Successfully assigned default/qos-pressure-deploy-647b468b7d-lhrhl to ai-infra-lab-control-plane
+24s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-wlgbn    The node had condition: [MemoryPressure].
+23s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-tn7qj    Successfully assigned default/qos-pressure-deploy-647b468b7d-tn7qj to ai-infra-lab-control-plane
+23s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-tn7qj    The node had condition: [MemoryPressure].
+23s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-gnxgl    The node had condition: [MemoryPressure].
+23s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-29jzn    Successfully assigned default/qos-pressure-deploy-647b468b7d-29jzn to ai-infra-lab-control-plane
+23s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-29jzn    The node had condition: [MemoryPressure].
+23s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-9lkgx    The node had condition: [MemoryPressure].
+23s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-9lkgx    Successfully assigned default/qos-pressure-deploy-647b468b7d-9lkgx to ai-infra-lab-control-plane
+23s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-n9m4h    The node had condition: [MemoryPressure].
+23s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-n9m4h    Successfully assigned default/qos-pressure-deploy-647b468b7d-n9m4h to ai-infra-lab-control-plane
+23s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-h8nss    Successfully assigned default/qos-pressure-deploy-647b468b7d-h8nss to ai-infra-lab-control-plane
+23s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-h8nss    The node had condition: [MemoryPressure].
+23s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-hmth5    Successfully assigned default/qos-pressure-deploy-647b468b7d-hmth5 to ai-infra-lab-control-plane
+23s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-gnxgl    Successfully assigned default/qos-pressure-deploy-647b468b7d-gnxgl to ai-infra-lab-control-plane
+23s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-hmth5    The node had condition: [MemoryPressure].
+23s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-lr7tn    The node had condition: [MemoryPressure].
+23s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-lr7tn    Successfully assigned default/qos-pressure-deploy-647b468b7d-lr7tn to ai-infra-lab-control-plane
+23s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-tldk8    Successfully assigned default/qos-pressure-deploy-647b468b7d-tldk8 to ai-infra-lab-control-plane
+23s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-tldk8    The node had condition: [MemoryPressure].
+23s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-krrzb    The node had condition: [MemoryPressure].
+23s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-krrzb    Successfully assigned default/qos-pressure-deploy-647b468b7d-krrzb to ai-infra-lab-control-plane
+22s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-mnwdv    The node had condition: [MemoryPressure].
+22s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-mwtqp    The node had condition: [MemoryPressure].
+22s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-cw77n    The node had condition: [MemoryPressure].
+22s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-mnwdv    Successfully assigned default/qos-pressure-deploy-647b468b7d-mnwdv to ai-infra-lab-control-plane
+22s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-wrl7d    Successfully assigned default/qos-pressure-deploy-647b468b7d-wrl7d to ai-infra-lab-control-plane
+22s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-wrl7d    The node had condition: [MemoryPressure].
+22s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-mwtqp    Successfully assigned default/qos-pressure-deploy-647b468b7d-mwtqp to ai-infra-lab-control-plane
+22s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-hldwn    The node had condition: [MemoryPressure].
+22s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-68drp    The node had condition: [MemoryPressure].
+22s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-68drp    Successfully assigned default/qos-pressure-deploy-647b468b7d-68drp to ai-infra-lab-control-plane
+22s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-xrq4s    Successfully assigned default/qos-pressure-deploy-647b468b7d-xrq4s to ai-infra-lab-control-plane
+22s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-xrq4s    The node had condition: [MemoryPressure].
+22s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-hldwn    Successfully assigned default/qos-pressure-deploy-647b468b7d-hldwn to ai-infra-lab-control-plane
+22s         Warning   FailedScheduling            pod/qos-pressure-deploy-647b468b7d-pspx4    0/1 nodes are available: 1 node(s) had untolerated taint {node.kubernetes.io/memory-pressure: }. preemption: 0/1 nodes are available: 1 Preemption is not helpful for scheduling.
+22s         Normal    NodeHasInsufficientMemory   node/ai-infra-lab-control-plane             Node ai-infra-lab-control-plane status is now: NodeHasInsufficientMemory
+22s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-5ldp4    The node had condition: [MemoryPressure].
+22s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-5ldp4    Successfully assigned default/qos-pressure-deploy-647b468b7d-5ldp4 to ai-infra-lab-control-plane
+22s         Normal    Scheduled                   pod/qos-pressure-deploy-647b468b7d-cw77n    Successfully assigned default/qos-pressure-deploy-647b468b7d-cw77n to ai-infra-lab-control-plane
+20s         Normal    Pulling                     pod/qos-pressure-deploy-647b468b7d-r2b8c    Pulling image "polinux/stress"
+17s         Normal    Started                     pod/qos-pressure-deploy-647b468b7d-r2b8c    Started container stress
+17s         Normal    Created                     pod/qos-pressure-deploy-647b468b7d-r2b8c    Created container: stress
+17s         Normal    Pulled                      pod/qos-pressure-deploy-647b468b7d-r2b8c    Successfully pulled image "polinux/stress" in 596ms (596ms including waiting). Image size: 4041495 bytes.
+12s         Warning   Evicted                     pod/qos-pressure-deploy-647b468b7d-fv9nw    The node was low on resource: memory. Threshold quantity: 1536Mi, available: 494172Ki. Container stress was using 1194528Ki, request is 0, has larger consumption of memory.
+12s         Normal    Killing                     pod/qos-pressure-deploy-647b468b7d-fv9nw    Stopping container stress
+12s         Warning   EvictionThresholdMet        node/ai-infra-lab-control-plane             Attempting to reclaim memory
+10s         Warning   FailedScheduling            pod/qos-pressure-deploy-647b468b7d-zwfcm    0/1 nodes are available: 1 node(s) had untolerated taint {node.kubernetes.io/memory-pressure: }. preemption: 0/1 nodes are available: 1 Preemption is not helpful for scheduling.

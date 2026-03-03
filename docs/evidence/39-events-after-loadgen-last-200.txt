@@ -1,0 +1,86 @@
+LAST SEEN   TYPE      REASON                         OBJECT                                     MESSAGE
+3m52s       Normal    Scheduled                      pod/model-server-56595589db-mnl96          Successfully assigned default/model-server-56595589db-mnl96 to ai-infra-lab-control-plane
+3m52s       Normal    SuccessfulCreate               replicaset/model-server-56595589db         Created pod: model-server-56595589db-mnl96
+3m52s       Normal    ScalingReplicaSet              deployment/model-server                    Scaled up replica set model-server-56595589db from 0 to 1
+3m52s       Normal    Created                        pod/model-server-56595589db-mnl96          Created container: model-server
+3m52s       Normal    Pulled                         pod/model-server-56595589db-mnl96          Container image "fastapi-model-server:0.1.1" already present on machine
+3m51s       Normal    Started                        pod/model-server-56595589db-mnl96          Started container model-server
+3m40s       Normal    SuccessfulCreate               replicaset/model-server-56595589db         Created pod: model-server-56595589db-cvdhm
+3m40s       Normal    ScalingReplicaSet              deployment/model-server                    Scaled up replica set model-server-56595589db from 1 to 2
+3m40s       Normal    ScalingReplicaSet              deployment/model-server                    Scaled down replica set model-server-ccd5f56fc from 2 to 1
+3m40s       Normal    Scheduled                      pod/model-server-56595589db-cvdhm          Successfully assigned default/model-server-56595589db-cvdhm to ai-infra-lab-control-plane
+3m40s       Normal    Killing                        pod/model-server-ccd5f56fc-vg6k9           Stopping container model-server
+3m40s       Normal    SuccessfulDelete               replicaset/model-server-ccd5f56fc          Deleted pod: model-server-ccd5f56fc-vg6k9
+3m39s       Normal    Pulled                         pod/model-server-56595589db-cvdhm          Container image "fastapi-model-server:0.1.1" already present on machine
+3m39s       Normal    Started                        pod/model-server-56595589db-cvdhm          Started container model-server
+3m39s       Normal    Created                        pod/model-server-56595589db-cvdhm          Created container: model-server
+3m28s       Normal    SuccessfulDelete               replicaset/model-server-ccd5f56fc          Deleted pod: model-server-ccd5f56fc-hd62c
+3m28s       Normal    Killing                        pod/model-server-ccd5f56fc-hd62c           Stopping container model-server
+3m28s       Normal    ScalingReplicaSet              deployment/model-server                    Scaled down replica set model-server-ccd5f56fc from 1 to 0
+3m24s       Warning   FailedGetResourceMetric        horizontalpodautoscaler/model-server-hpa   failed to get cpu utilization: did not receive metrics for targeted pods (pods might be unready)
+3m24s       Warning   FailedComputeMetricsReplicas   horizontalpodautoscaler/model-server-hpa   invalid metrics (1 invalid out of 1), first error is: failed to get cpu resource metric value: failed to get cpu utilization: did not receive metrics for targeted pods (pods might be unready)
+3m17s       Normal    Pulled                         pod/model-server-loadgen-wg5gb             Container image "curlimages/curl:8.12.1" already present on machine
+3m17s       Normal    Started                        pod/model-server-loadgen-wrgfn             Started container loadgen
+3m17s       Normal    SuccessfulCreate               job/model-server-loadgen                   Created pod: model-server-loadgen-dms7x
+3m17s       Normal    SuccessfulCreate               job/model-server-loadgen                   Created pod: model-server-loadgen-rjj78
+3m17s       Normal    SuccessfulCreate               job/model-server-loadgen                   Created pod: model-server-loadgen-9z55q
+3m17s       Normal    SuccessfulCreate               job/model-server-loadgen                   Created pod: model-server-loadgen-wg5gb
+3m17s       Normal    SuccessfulCreate               job/model-server-loadgen                   Created pod: model-server-loadgen-2566n
+3m17s       Normal    SuccessfulCreate               job/model-server-loadgen                   Created pod: model-server-loadgen-j7hn8
+3m17s       Normal    SuccessfulCreate               job/model-server-loadgen                   Created pod: model-server-loadgen-wrgfn
+3m17s       Normal    SuccessfulCreate               job/model-server-loadgen                   Created pod: model-server-loadgen-pmh2t
+3m17s       Normal    Created                        pod/model-server-loadgen-wrgfn             Created container: loadgen
+3m17s       Normal    Pulled                         pod/model-server-loadgen-wrgfn             Container image "curlimages/curl:8.12.1" already present on machine
+3m17s       Normal    Scheduled                      pod/model-server-loadgen-wrgfn             Successfully assigned default/model-server-loadgen-wrgfn to ai-infra-lab-control-plane
+3m17s       Normal    Started                        pod/model-server-loadgen-wg5gb             Started container loadgen
+3m17s       Normal    Created                        pod/model-server-loadgen-wg5gb             Created container: loadgen
+3m17s       Normal    Scheduled                      pod/model-server-loadgen-wg5gb             Successfully assigned default/model-server-loadgen-wg5gb to ai-infra-lab-control-plane
+3m17s       Normal    Started                        pod/model-server-loadgen-rjj78             Started container loadgen
+3m17s       Normal    Created                        pod/model-server-loadgen-rjj78             Created container: loadgen
+3m17s       Normal    Scheduled                      pod/model-server-loadgen-2566n             Successfully assigned default/model-server-loadgen-2566n to ai-infra-lab-control-plane
+3m17s       Normal    Pulled                         pod/model-server-loadgen-2566n             Container image "curlimages/curl:8.12.1" already present on machine
+3m17s       Normal    Created                        pod/model-server-loadgen-2566n             Created container: loadgen
+3m17s       Normal    Started                        pod/model-server-loadgen-2566n             Started container loadgen
+3m17s       Normal    Scheduled                      pod/model-server-loadgen-9z55q             Successfully assigned default/model-server-loadgen-9z55q to ai-infra-lab-control-plane
+3m17s       Normal    Pulled                         pod/model-server-loadgen-9z55q             Container image "curlimages/curl:8.12.1" already present on machine
+3m17s       Normal    Created                        pod/model-server-loadgen-9z55q             Created container: loadgen
+3m17s       Normal    Started                        pod/model-server-loadgen-9z55q             Started container loadgen
+3m17s       Normal    Scheduled                      pod/model-server-loadgen-dms7x             Successfully assigned default/model-server-loadgen-dms7x to ai-infra-lab-control-plane
+3m17s       Normal    Pulled                         pod/model-server-loadgen-dms7x             Container image "curlimages/curl:8.12.1" already present on machine
+3m17s       Normal    Created                        pod/model-server-loadgen-dms7x             Created container: loadgen
+3m17s       Normal    Started                        pod/model-server-loadgen-dms7x             Started container loadgen
+3m17s       Normal    Scheduled                      pod/model-server-loadgen-j7hn8             Successfully assigned default/model-server-loadgen-j7hn8 to ai-infra-lab-control-plane
+3m17s       Normal    Pulled                         pod/model-server-loadgen-j7hn8             Container image "curlimages/curl:8.12.1" already present on machine
+3m17s       Normal    Created                        pod/model-server-loadgen-j7hn8             Created container: loadgen
+3m17s       Normal    Started                        pod/model-server-loadgen-j7hn8             Started container loadgen
+3m17s       Normal    Scheduled                      pod/model-server-loadgen-pmh2t             Successfully assigned default/model-server-loadgen-pmh2t to ai-infra-lab-control-plane
+3m17s       Normal    Pulled                         pod/model-server-loadgen-pmh2t             Container image "curlimages/curl:8.12.1" already present on machine
+3m17s       Normal    Created                        pod/model-server-loadgen-pmh2t             Created container: loadgen
+3m17s       Normal    Started                        pod/model-server-loadgen-pmh2t             Started container loadgen
+3m17s       Normal    Scheduled                      pod/model-server-loadgen-rjj78             Successfully assigned default/model-server-loadgen-rjj78 to ai-infra-lab-control-plane
+3m17s       Normal    Pulled                         pod/model-server-loadgen-rjj78             Container image "curlimages/curl:8.12.1" already present on machine
+2m51s       Normal    SuccessfulCreate               replicaset/model-server-56595589db         Created pod: model-server-56595589db-zdqn2
+2m51s       Normal    SuccessfulRescale              horizontalpodautoscaler/model-server-hpa   New size: 4; reason: cpu resource utilization (percentage of request) above target
+2m51s       Normal    ScalingReplicaSet              deployment/model-server                    Scaled up replica set model-server-56595589db from 2 to 4
+2m51s       Normal    Scheduled                      pod/model-server-56595589db-4w98s          Successfully assigned default/model-server-56595589db-4w98s to ai-infra-lab-control-plane
+2m51s       Normal    Scheduled                      pod/model-server-56595589db-zdqn2          Successfully assigned default/model-server-56595589db-zdqn2 to ai-infra-lab-control-plane
+2m51s       Normal    SuccessfulCreate               replicaset/model-server-56595589db         Created pod: model-server-56595589db-4w98s
+2m50s       Normal    Pulled                         pod/model-server-56595589db-4w98s          Container image "fastapi-model-server:0.1.1" already present on machine
+2m49s       Normal    Created                        pod/model-server-56595589db-4w98s          Created container: model-server
+2m49s       Normal    Created                        pod/model-server-56595589db-zdqn2          Created container: model-server
+2m49s       Normal    Pulled                         pod/model-server-56595589db-zdqn2          Container image "fastapi-model-server:0.1.1" already present on machine
+2m48s       Normal    Started                        pod/model-server-56595589db-4w98s          Started container model-server
+2m48s       Normal    Started                        pod/model-server-56595589db-zdqn2          Started container model-server
+2m33s       Normal    Scheduled                      pod/model-server-56595589db-pgs4t          Successfully assigned default/model-server-56595589db-pgs4t to ai-infra-lab-control-plane
+2m33s       Normal    SuccessfulCreate               replicaset/model-server-56595589db         Created pod: model-server-56595589db-pgs4t
+2m33s       Normal    Started                        pod/model-server-56595589db-pgs4t          Started container model-server
+2m33s       Normal    SuccessfulCreate               replicaset/model-server-56595589db         Created pod: model-server-56595589db-lclsw
+2m33s       Normal    Created                        pod/model-server-56595589db-pgs4t          Created container: model-server
+2m33s       Normal    Pulled                         pod/model-server-56595589db-pgs4t          Container image "fastapi-model-server:0.1.1" already present on machine
+2m33s       Normal    Scheduled                      pod/model-server-56595589db-lclsw          Successfully assigned default/model-server-56595589db-lclsw to ai-infra-lab-control-plane
+2m33s       Normal    SuccessfulRescale              horizontalpodautoscaler/model-server-hpa   New size: 6; reason: cpu resource utilization (percentage of request) above target
+2m33s       Normal    Started                        pod/model-server-56595589db-lclsw          Started container model-server
+2m33s       Normal    Created                        pod/model-server-56595589db-lclsw          Created container: model-server
+2m33s       Normal    Pulled                         pod/model-server-56595589db-lclsw          Container image "fastapi-model-server:0.1.1" already present on machine
+2m33s       Normal    ScalingReplicaSet              deployment/model-server                    Scaled up replica set model-server-56595589db from 4 to 6
+107s        Normal    Completed                      job/model-server-loadgen                   Job completed

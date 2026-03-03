@@ -1,0 +1,100 @@
+Name:               ai-infra-lab-control-plane
+Roles:              control-plane
+Labels:             beta.kubernetes.io/arch=amd64
+                    beta.kubernetes.io/os=linux
+                    kubernetes.io/arch=amd64
+                    kubernetes.io/hostname=ai-infra-lab-control-plane
+                    kubernetes.io/os=linux
+                    node-role.kubernetes.io/control-plane=
+                    pool=default
+Annotations:        kubeadm.alpha.kubernetes.io/cri-socket: unix:///run/containerd/containerd.sock
+                    node.alpha.kubernetes.io/ttl: 0
+                    volumes.kubernetes.io/controller-managed-attach-detach: true
+CreationTimestamp:  Tue, 03 Mar 2026 06:26:34 -0500
+Taints:             <none>
+Unschedulable:      false
+Lease:
+  HolderIdentity:  ai-infra-lab-control-plane
+  AcquireTime:     <unset>
+  RenewTime:       Tue, 03 Mar 2026 07:33:25 -0500
+Conditions:
+  Type             Status  LastHeartbeatTime                 LastTransitionTime                Reason                       Message
+  ----             ------  -----------------                 ------------------                ------                       -------
+  MemoryPressure   False   Tue, 03 Mar 2026 07:31:45 -0500   Tue, 03 Mar 2026 06:26:34 -0500   KubeletHasSufficientMemory   kubelet has sufficient memory available
+  DiskPressure     False   Tue, 03 Mar 2026 07:31:45 -0500   Tue, 03 Mar 2026 06:26:34 -0500   KubeletHasNoDiskPressure     kubelet has no disk pressure
+  PIDPressure      False   Tue, 03 Mar 2026 07:31:45 -0500   Tue, 03 Mar 2026 06:26:34 -0500   KubeletHasSufficientPID      kubelet has sufficient PID available
+  Ready            True    Tue, 03 Mar 2026 07:31:45 -0500   Tue, 03 Mar 2026 06:26:56 -0500   KubeletReady                 kubelet is posting ready status
+Addresses:
+  InternalIP:  172.18.0.2
+  Hostname:    ai-infra-lab-control-plane
+Capacity:
+  cpu:                16
+  ephemeral-storage:  1055762868Ki
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  memory:             7960764Ki
+  pods:               110
+Allocatable:
+  cpu:                16
+  ephemeral-storage:  1055762868Ki
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  memory:             7960764Ki
+  pods:               110
+System Info:
+  Machine ID:                 d64027189f1049e58a09e0e872c89c2e
+  System UUID:                d64027189f1049e58a09e0e872c89c2e
+  Boot ID:                    b96234b8-c8d0-47da-b6fb-1aef2800e0d8
+  Kernel Version:             6.6.87.2-microsoft-standard-WSL2
+  OS Image:                   Debian GNU/Linux 12 (bookworm)
+  Operating System:           linux
+  Architecture:               amd64
+  Container Runtime Version:  containerd://2.0.2
+  Kubelet Version:            v1.32.2
+  Kube-Proxy Version:         v1.32.2
+PodCIDR:                      10.244.0.0/24
+PodCIDRs:                     10.244.0.0/24
+ProviderID:                   kind://docker/ai-infra-lab/ai-infra-lab-control-plane
+Non-terminated Pods:          (18 in total)
+  Namespace                   Name                                                  CPU Requests  CPU Limits  Memory Requests  Memory Limits  Age
+  ---------                   ----                                                  ------------  ----------  ---------------  -------------  ---
+  default                     qos-best-effort                                       0 (0%)        0 (0%)      0 (0%)           0 (0%)         5m48s
+  default                     qos-burstable                                         100m (0%)     500m (3%)   128Mi (1%)       512Mi (6%)     5m48s
+  default                     qos-guaranteed                                        200m (1%)     200m (1%)   300Mi (3%)       300Mi (3%)     5m48s
+  default                     qos-pressure-deploy-647b468b7d-46kzg                  0 (0%)        0 (0%)      0 (0%)           0 (0%)         2m47s
+  default                     qos-pressure-deploy-647b468b7d-68hg7                  0 (0%)        0 (0%)      0 (0%)           0 (0%)         2m47s
+  default                     qos-pressure-deploy-647b468b7d-cfz7v                  0 (0%)        0 (0%)      0 (0%)           0 (0%)         2m47s
+  default                     qos-pressure-deploy-647b468b7d-cjkx2                  0 (0%)        0 (0%)      0 (0%)           0 (0%)         2m47s
+  default                     qos-pressure-deploy-647b468b7d-ckrmr                  0 (0%)        0 (0%)      0 (0%)           0 (0%)         2m47s
+  default                     qos-pressure-deploy-647b468b7d-lf48x                  0 (0%)        0 (0%)      0 (0%)           0 (0%)         2m47s
+  kube-system                 coredns-668d6bf9bc-tv9dp                              100m (0%)     0 (0%)      70Mi (0%)        170Mi (2%)     66m
+  kube-system                 coredns-668d6bf9bc-zfgs4                              100m (0%)     0 (0%)      70Mi (0%)        170Mi (2%)     66m
+  kube-system                 etcd-ai-infra-lab-control-plane                       100m (0%)     0 (0%)      100Mi (1%)       0 (0%)         66m
+  kube-system                 kindnet-4x8rf                                         100m (0%)     100m (0%)   50Mi (0%)        50Mi (0%)      66m
+  kube-system                 kube-apiserver-ai-infra-lab-control-plane             250m (1%)     0 (0%)      0 (0%)           0 (0%)         66m
+  kube-system                 kube-controller-manager-ai-infra-lab-control-plane    200m (1%)     0 (0%)      0 (0%)           0 (0%)         66m
+  kube-system                 kube-proxy-rz9xq                                      0 (0%)        0 (0%)      0 (0%)           0 (0%)         66m
+  kube-system                 kube-scheduler-ai-infra-lab-control-plane             100m (0%)     0 (0%)      0 (0%)           0 (0%)         66m
+  local-path-storage          local-path-provisioner-7dc846544d-zmj8n               0 (0%)        0 (0%)      0 (0%)           0 (0%)         66m
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests    Limits
+  --------           --------    ------
+  cpu                1250m (7%)  800m (5%)
+  memory             718Mi (9%)  1202Mi (15%)
+  ephemeral-storage  0 (0%)      0 (0%)
+  hugepages-1Gi      0 (0%)      0 (0%)
+  hugepages-2Mi      0 (0%)      0 (0%)
+Events:
+  Type     Reason     Age                  From     Message
+  ----     ------     ----                 ----     -------
+  Warning  SystemOOM  5m22s                kubelet  System OOM encountered, victim process: stress, pid: 10698
+  Warning  SystemOOM  5m15s                kubelet  System OOM encountered, victim process: stress, pid: 11161
+  Warning  SystemOOM  4m52s                kubelet  System OOM encountered, victim process: stress, pid: 11209
+  Warning  SystemOOM  4m16s                kubelet  System OOM encountered, victim process: stress, pid: 11262
+  Warning  SystemOOM  3m25s                kubelet  System OOM encountered, victim process: stress, pid: 11312
+  Warning  SystemOOM  2m41s                kubelet  System OOM encountered, victim process: stress, pid: 12030
+  Warning  SystemOOM  2m37s                kubelet  System OOM encountered, victim process: stress, pid: 11903
+  Warning  SystemOOM  2m33s                kubelet  System OOM encountered, victim process: stress, pid: 12152
+  Warning  SystemOOM  2m31s                kubelet  System OOM encountered, victim process: stress, pid: 12062
+  Warning  SystemOOM  44s (x8 over 2m20s)  kubelet  (combined from similar events): System OOM encountered, victim process: stress, pid: 12440

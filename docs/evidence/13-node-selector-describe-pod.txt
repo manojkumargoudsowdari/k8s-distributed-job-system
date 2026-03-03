@@ -1,0 +1,52 @@
+Name:             node-selector-test
+Namespace:        default
+Priority:         0
+Service Account:  default
+Node:             ai-infra-lab-control-plane/172.18.0.2
+Start Time:       Tue, 03 Mar 2026 07:00:02 -0500
+Labels:           app=node-selector-test
+Annotations:      <none>
+Status:           Running
+IP:               10.244.0.16
+IPs:
+  IP:  10.244.0.16
+Containers:
+  nginx:
+    Container ID:   containerd://c50ca18da0873c9f9d64117ce81cf9dae318d2f4a1b4328a8e3690a8d8437e48
+    Image:          nginx:latest
+    Image ID:       docker.io/library/nginx@sha256:0236ee02dcbce00b9bd83e0f5fbc51069e7e1161bd59d99885b3ae1734f3392e
+    Port:           80/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Tue, 03 Mar 2026 07:00:05 -0500
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-87rn2 (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  kube-api-access-87rn2:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    Optional:                false
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              pool=default
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  28s   default-scheduler  Successfully assigned default/node-selector-test to ai-infra-lab-control-plane
+  Normal  Pulling    27s   kubelet            Pulling image "nginx:latest"
+  Normal  Pulled     25s   kubelet            Successfully pulled image "nginx:latest" in 1.789s (1.789s including waiting). Image size: 62944796 bytes.
+  Normal  Created    25s   kubelet            Created container: nginx
+  Normal  Started    25s   kubelet            Started container nginx

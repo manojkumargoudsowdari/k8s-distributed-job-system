@@ -1,0 +1,5 @@
+NAME              READY   STATUS      RESTARTS      AGE   IP            NODE                         NOMINATED NODE   READINESS GATES
+qos-best-effort   1/1     Running     0             69s   10.244.0.18   ai-infra-lab-control-plane   <none>           <none>
+qos-burstable     1/1     Running     0             69s   10.244.0.19   ai-infra-lab-control-plane   <none>           <none>
+qos-guaranteed    1/1     Running     0             69s   10.244.0.20   ai-infra-lab-control-plane   <none>           <none>
+qos-pressure      0/1     OOMKilled   2 (36s ago)   69s   10.244.0.21   ai-infra-lab-control-plane   <none>           <none>

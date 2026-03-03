@@ -1,0 +1,7 @@
+NAME                            CPU(cores)   MEMORY(bytes)   
+model-server-56595589db-4w98s   2m           33Mi            
+model-server-56595589db-cvdhm   2m           33Mi            
+model-server-56595589db-lclsw   2m           33Mi            
+model-server-56595589db-mnl96   2m           33Mi            
+model-server-56595589db-pgs4t   2m           33Mi            
+model-server-56595589db-zdqn2   2m           33Mi            

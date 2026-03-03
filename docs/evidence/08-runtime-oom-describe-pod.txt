@@ -1,0 +1,80 @@
+Name:             web-75b664b6fb-lzs49
+Namespace:        default
+Priority:         0
+Service Account:  default
+Node:             ai-infra-lab-control-plane/172.18.0.2
+Start Time:       Tue, 03 Mar 2026 06:39:09 -0500
+Labels:           app=web
+                  pod-template-hash=75b664b6fb
+Annotations:      <none>
+Status:           Running
+IP:               10.244.0.12
+IPs:
+  IP:           10.244.0.12
+Controlled By:  ReplicaSet/web-75b664b6fb
+Containers:
+  stress:
+    Container ID:  containerd://d0903ded01d644e8e1d1b3c0d06f27df57e9f19628da8e349f7056bbfbd54298
+    Image:         polinux/stress
+    Image ID:      docker.io/polinux/stress@sha256:b6144f84f9c15dac80deb48d3a646b55c7043ab1d83ea0a697c09097aaad21aa
+    Port:          80/TCP
+    Host Port:     0/TCP
+    Command:
+      stress
+    Args:
+      --vm
+      1
+      --vm-bytes
+      300M
+      --vm-hang
+      1
+    State:          Terminated
+      Reason:       OOMKilled
+      Exit Code:    137
+      Started:      Tue, 03 Mar 2026 06:39:24 -0500
+      Finished:     Tue, 03 Mar 2026 06:39:25 -0500
+    Last State:     Terminated
+      Reason:       OOMKilled
+      Exit Code:    137
+      Started:      Tue, 03 Mar 2026 06:39:11 -0500
+      Finished:     Tue, 03 Mar 2026 06:39:12 -0500
+    Ready:          False
+    Restart Count:  2
+    Limits:
+      cpu:     500m
+      memory:  128Mi
+    Requests:
+      cpu:        100m
+      memory:     128Mi
+    Environment:  <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-lpbwk (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       False 
+  ContainersReady             False 
+  PodScheduled                True 
+Volumes:
+  kube-api-access-lpbwk:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    Optional:                false
+    DownwardAPI:             true
+QoS Class:                   Burstable
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type     Reason     Age               From               Message
+  ----     ------     ----              ----               -------
+  Normal   Scheduled  19s               default-scheduler  Successfully assigned default/web-75b664b6fb-lzs49 to ai-infra-lab-control-plane
+  Normal   Pulled     18s               kubelet            Successfully pulled image "polinux/stress" in 532ms (532ms including waiting). Image size: 4041495 bytes.
+  Normal   Pulled     17s               kubelet            Successfully pulled image "polinux/stress" in 499ms (499ms including waiting). Image size: 4041495 bytes.
+  Normal   Pulling    4s (x3 over 19s)  kubelet            Pulling image "polinux/stress"
+  Normal   Created    4s (x3 over 18s)  kubelet            Created container: stress
+  Normal   Started    4s (x3 over 18s)  kubelet            Started container stress
+  Normal   Pulled     4s                kubelet            Successfully pulled image "polinux/stress" in 512ms (512ms including waiting). Image size: 4041495 bytes.
+  Warning  BackOff    3s (x3 over 16s)  kubelet            Back-off restarting failed container stress in pod web-75b664b6fb-lzs49_default(5ea3ba59-39f8-46b7-81fa-164bb64a6482)

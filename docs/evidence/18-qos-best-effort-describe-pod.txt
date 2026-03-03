@@ -1,0 +1,61 @@
+Name:             qos-best-effort
+Namespace:        default
+Priority:         0
+Service Account:  default
+Node:             ai-infra-lab-control-plane/172.18.0.2
+Start Time:       Tue, 03 Mar 2026 07:27:38 -0500
+Labels:           app=qos-best-effort
+Annotations:      <none>
+Status:           Running
+IP:               10.244.0.18
+IPs:
+  IP:  10.244.0.18
+Containers:
+  stress:
+    Container ID:  containerd://3c6935075886826409dbb13778d2a9c0ee2b30a2939d988b8c21a4a6cc0a19ba
+    Image:         polinux/stress
+    Image ID:      docker.io/polinux/stress@sha256:b6144f84f9c15dac80deb48d3a646b55c7043ab1d83ea0a697c09097aaad21aa
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      stress
+    Args:
+      --vm
+      1
+      --vm-bytes
+      300M
+      --vm-hang
+      1
+    State:          Running
+      Started:      Tue, 03 Mar 2026 07:27:39 -0500
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-2kr6h (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  kube-api-access-2kr6h:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    Optional:                false
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age    From               Message
+  ----    ------     ----   ----               -------
+  Normal  Scheduled  5m47s  default-scheduler  Successfully assigned default/qos-best-effort to ai-infra-lab-control-plane
+  Normal  Pulling    5m47s  kubelet            Pulling image "polinux/stress"
+  Normal  Pulled     5m46s  kubelet            Successfully pulled image "polinux/stress" in 813ms (813ms including waiting). Image size: 4041495 bytes.
+  Normal  Created    5m46s  kubelet            Created container: stress
+  Normal  Started    5m46s  kubelet            Started container stress

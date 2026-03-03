@@ -1,0 +1,10 @@
+NAME                                   READY   STATUS             RESTARTS       AGE     IP            NODE                         NOMINATED NODE   READINESS GATES
+qos-best-effort                        1/1     Running            0              5m48s   10.244.0.18   ai-infra-lab-control-plane   <none>           <none>
+qos-burstable                          1/1     Running            0              5m48s   10.244.0.19   ai-infra-lab-control-plane   <none>           <none>
+qos-guaranteed                         1/1     Running            0              5m48s   10.244.0.20   ai-infra-lab-control-plane   <none>           <none>
+qos-pressure-deploy-647b468b7d-46kzg   1/1     Running            3 (80s ago)    2m47s   10.244.0.23   ai-infra-lab-control-plane   <none>           <none>
+qos-pressure-deploy-647b468b7d-68hg7   0/1     CrashLoopBackOff   3 (44s ago)    2m47s   10.244.0.24   ai-infra-lab-control-plane   <none>           <none>
+qos-pressure-deploy-647b468b7d-cfz7v   1/1     Running            3 (112s ago)   2m47s   10.244.0.26   ai-infra-lab-control-plane   <none>           <none>
+qos-pressure-deploy-647b468b7d-cjkx2   1/1     Running            2 (45s ago)    2m47s   10.244.0.27   ai-infra-lab-control-plane   <none>           <none>
+qos-pressure-deploy-647b468b7d-ckrmr   1/1     Running            0              2m47s   10.244.0.25   ai-infra-lab-control-plane   <none>           <none>
+qos-pressure-deploy-647b468b7d-lf48x   1/1     Running            0              2m47s   10.244.0.22   ai-infra-lab-control-plane   <none>           <none>

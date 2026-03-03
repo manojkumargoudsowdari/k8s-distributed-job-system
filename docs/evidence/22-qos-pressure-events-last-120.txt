@@ -1,0 +1,120 @@
+44m         Normal    Pulled              pod/taint-test                              Successfully pulled image "nginx:latest" in 541ms (541ms including waiting). Image size: 62944796 bytes.
+38m         Warning   FailedScheduling    pod/taint-test-no-toleration                0/1 nodes are available: 1 node(s) had untolerated taint {gpu: true}. preemption: 0/1 nodes are available: 1 Preemption is not helpful for scheduling.
+33m         Normal    Scheduled           pod/taint-test-no-toleration                Successfully assigned default/taint-test-no-toleration to ai-infra-lab-control-plane
+33m         Normal    Pulling             pod/taint-test-no-toleration                Pulling image "nginx:latest"
+33m         Normal    Created             pod/taint-test-no-toleration                Created container: nginx
+33m         Normal    Pulled              pod/taint-test-no-toleration                Successfully pulled image "nginx:latest" in 552ms (552ms including waiting). Image size: 62944796 bytes.
+33m         Normal    Started             pod/taint-test-no-toleration                Started container nginx
+33m         Normal    Scheduled           pod/node-selector-test                      Successfully assigned default/node-selector-test to ai-infra-lab-control-plane
+33m         Normal    Pulling             pod/node-selector-test                      Pulling image "nginx:latest"
+33m         Normal    Started             pod/node-selector-test                      Started container nginx
+33m         Normal    Pulled              pod/node-selector-test                      Successfully pulled image "nginx:latest" in 1.789s (1.789s including waiting). Image size: 62944796 bytes.
+33m         Normal    Created             pod/node-selector-test                      Created container: nginx
+33m         Normal    Scheduled           pod/node-affinity-test                      Successfully assigned default/node-affinity-test to ai-infra-lab-control-plane
+33m         Normal    Created             pod/node-affinity-test                      Created container: nginx
+33m         Normal    Pulled              pod/node-affinity-test                      Successfully pulled image "nginx:latest" in 626ms (626ms including waiting). Image size: 62944796 bytes.
+33m         Normal    Pulling             pod/node-affinity-test                      Pulling image "nginx:latest"
+33m         Normal    Started             pod/node-affinity-test                      Started container nginx
+11m         Warning   BackOff             pod/web-75b664b6fb-lzs49                    Back-off restarting failed container stress in pod web-75b664b6fb-lzs49_default(5ea3ba59-39f8-46b7-81fa-164bb64a6482)
+9m9s        Normal    Pulling             pod/web-75b664b6fb-qd42n                    Pulling image "polinux/stress"
+8m8s        Warning   BackOff             pod/web-75b664b6fb-qd42n                    Back-off restarting failed container stress in pod web-75b664b6fb-qd42n_default(cc658b12-88f8-4a78-9328-1dcb0f767433)
+7m27s       Normal    Pulling             pod/web-75b664b6fb-lzs49                    Pulling image "polinux/stress"
+6m16s       Normal    Killing             pod/node-selector-test                      Stopping container nginx
+6m16s       Normal    SuccessfulDelete    replicaset/web-7f45bc5875                   Deleted pod: web-7f45bc5875-bhrlm
+6m16s       Normal    SuccessfulDelete    replicaset/web-75b664b6fb                   Deleted pod: web-75b664b6fb-qd42n
+6m16s       Normal    Killing             pod/web-7f45bc5875-bhrlm                    Stopping container nginx
+6m16s       Normal    Killing             pod/web-7f45bc5875-clr5w                    Stopping container nginx
+6m16s       Normal    Killing             pod/taint-test                              Stopping container nginx
+6m16s       Normal    SuccessfulDelete    replicaset/web-75b664b6fb                   Deleted pod: web-75b664b6fb-lzs49
+6m16s       Normal    Killing             pod/node-affinity-test                      Stopping container nginx
+6m16s       Normal    SuccessfulDelete    replicaset/web-7f45bc5875                   Deleted pod: web-7f45bc5875-clr5w
+6m16s       Normal    ScalingReplicaSet   deployment/web                              Scaled down replica set web-7f45bc5875 from 2 to 0
+6m16s       Normal    Killing             pod/taint-test-no-toleration                Stopping container nginx
+6m16s       Normal    ScalingReplicaSet   deployment/web                              Scaled down replica set web-75b664b6fb from 2 to 0
+5m48s       Normal    Scheduled           pod/qos-burstable                           Successfully assigned default/qos-burstable to ai-infra-lab-control-plane
+5m48s       Normal    Pulling             pod/qos-burstable                           Pulling image "polinux/stress"
+5m48s       Normal    Pulling             pod/qos-best-effort                         Pulling image "polinux/stress"
+5m48s       Normal    Scheduled           pod/qos-best-effort                         Successfully assigned default/qos-best-effort to ai-infra-lab-control-plane
+5m48s       Normal    Scheduled           pod/qos-pressure                            Successfully assigned default/qos-pressure to ai-infra-lab-control-plane
+5m48s       Normal    Scheduled           pod/qos-guaranteed                          Successfully assigned default/qos-guaranteed to ai-infra-lab-control-plane
+5m47s       Normal    Pulling             pod/qos-guaranteed                          Pulling image "polinux/stress"
+5m47s       Normal    Pulled              pod/qos-best-effort                         Successfully pulled image "polinux/stress" in 813ms (813ms including waiting). Image size: 4041495 bytes.
+5m47s       Normal    Created             pod/qos-best-effort                         Created container: stress
+5m47s       Normal    Started             pod/qos-best-effort                         Started container stress
+5m46s       Normal    Created             pod/qos-burstable                           Created container: stress
+5m46s       Normal    Pulled              pod/qos-burstable                           Successfully pulled image "polinux/stress" in 475ms (1.238s including waiting). Image size: 4041495 bytes.
+5m46s       Normal    Started             pod/qos-burstable                           Started container stress
+5m46s       Normal    Pulled              pod/qos-guaranteed                          Successfully pulled image "polinux/stress" in 364ms (1.266s including waiting). Image size: 4041495 bytes.
+5m46s       Normal    Created             pod/qos-guaranteed                          Created container: stress
+5m45s       Normal    Pulled              pod/qos-pressure                            Successfully pulled image "polinux/stress" in 504ms (1.735s including waiting). Image size: 4041495 bytes.
+5m45s       Normal    Started             pod/qos-guaranteed                          Started container stress
+5m22s       Warning   SystemOOM           node/ai-infra-lab-control-plane             System OOM encountered, victim process: stress, pid: 10698
+5m20s       Normal    Pulled              pod/qos-pressure                            Successfully pulled image "polinux/stress" in 587ms (588ms including waiting). Image size: 4041495 bytes.
+5m15s       Warning   SystemOOM           node/ai-infra-lab-control-plane             System OOM encountered, victim process: stress, pid: 11161
+4m56s       Normal    Pulled              pod/qos-pressure                            Successfully pulled image "polinux/stress" in 601ms (601ms including waiting). Image size: 4041495 bytes.
+4m52s       Warning   SystemOOM           node/ai-infra-lab-control-plane             System OOM encountered, victim process: stress, pid: 11209
+4m22s       Normal    Pulled              pod/qos-pressure                            Successfully pulled image "polinux/stress" in 1.05s (1.05s including waiting). Image size: 4041495 bytes.
+4m16s       Warning   SystemOOM           node/ai-infra-lab-control-plane             System OOM encountered, victim process: stress, pid: 11262
+3m31s       Normal    Created             pod/qos-pressure                            Created container: stress
+3m31s       Normal    Pulled              pod/qos-pressure                            Successfully pulled image "polinux/stress" in 506ms (506ms including waiting). Image size: 4041495 bytes.
+3m31s       Normal    Started             pod/qos-pressure                            Started container stress
+3m31s       Normal    Pulling             pod/qos-pressure                            Pulling image "polinux/stress"
+3m25s       Warning   SystemOOM           node/ai-infra-lab-control-plane             System OOM encountered, victim process: stress, pid: 11312
+2m56s       Warning   BackOff             pod/qos-pressure                            Back-off restarting failed container stress in pod qos-pressure_default(941f7688-56d3-4ae5-a2a2-8fc0da52a1f1)
+2m47s       Normal    SuccessfulCreate    replicaset/qos-pressure-deploy-647b468b7d   Created pod: qos-pressure-deploy-647b468b7d-lf48x
+2m47s       Normal    SuccessfulCreate    replicaset/qos-pressure-deploy-647b468b7d   Created pod: qos-pressure-deploy-647b468b7d-68hg7
+2m47s       Normal    Scheduled           pod/qos-pressure-deploy-647b468b7d-cjkx2    Successfully assigned default/qos-pressure-deploy-647b468b7d-cjkx2 to ai-infra-lab-control-plane
+2m47s       Normal    Scheduled           pod/qos-pressure-deploy-647b468b7d-cfz7v    Successfully assigned default/qos-pressure-deploy-647b468b7d-cfz7v to ai-infra-lab-control-plane
+2m47s       Normal    Scheduled           pod/qos-pressure-deploy-647b468b7d-ckrmr    Successfully assigned default/qos-pressure-deploy-647b468b7d-ckrmr to ai-infra-lab-control-plane
+2m47s       Normal    Scheduled           pod/qos-pressure-deploy-647b468b7d-68hg7    Successfully assigned default/qos-pressure-deploy-647b468b7d-68hg7 to ai-infra-lab-control-plane
+2m47s       Normal    Scheduled           pod/qos-pressure-deploy-647b468b7d-46kzg    Successfully assigned default/qos-pressure-deploy-647b468b7d-46kzg to ai-infra-lab-control-plane
+2m47s       Normal    SuccessfulCreate    replicaset/qos-pressure-deploy-647b468b7d   Created pod: qos-pressure-deploy-647b468b7d-ckrmr
+2m47s       Normal    Scheduled           pod/qos-pressure-deploy-647b468b7d-lf48x    Successfully assigned default/qos-pressure-deploy-647b468b7d-lf48x to ai-infra-lab-control-plane
+2m47s       Normal    SuccessfulCreate    replicaset/qos-pressure-deploy-647b468b7d   Created pod: qos-pressure-deploy-647b468b7d-46kzg
+2m47s       Normal    ScalingReplicaSet   deployment/qos-pressure-deploy              Scaled up replica set qos-pressure-deploy-647b468b7d from 0 to 6
+2m47s       Normal    SuccessfulCreate    replicaset/qos-pressure-deploy-647b468b7d   Created pod: qos-pressure-deploy-647b468b7d-cfz7v
+2m47s       Normal    SuccessfulCreate    replicaset/qos-pressure-deploy-647b468b7d   Created pod: qos-pressure-deploy-647b468b7d-cjkx2
+2m46s       Normal    Pulled              pod/qos-pressure-deploy-647b468b7d-68hg7    Successfully pulled image "polinux/stress" in 534ms (534ms including waiting). Image size: 4041495 bytes.
+2m46s       Normal    Pulling             pod/qos-pressure-deploy-647b468b7d-lf48x    Pulling image "polinux/stress"
+2m46s       Normal    Pulling             pod/qos-pressure-deploy-647b468b7d-ckrmr    Pulling image "polinux/stress"
+2m45s       Normal    Created             pod/qos-pressure-deploy-647b468b7d-lf48x    Created container: stress
+2m45s       Normal    Pulled              pod/qos-pressure-deploy-647b468b7d-lf48x    Successfully pulled image "polinux/stress" in 466ms (1.458s including waiting). Image size: 4041495 bytes.
+2m45s       Normal    Started             pod/qos-pressure-deploy-647b468b7d-ckrmr    Started container stress
+2m45s       Normal    Created             pod/qos-pressure-deploy-647b468b7d-ckrmr    Created container: stress
+2m45s       Normal    Pulled              pod/qos-pressure-deploy-647b468b7d-ckrmr    Successfully pulled image "polinux/stress" in 477ms (997ms including waiting). Image size: 4041495 bytes.
+2m44s       Normal    Pulled              pod/qos-pressure-deploy-647b468b7d-cjkx2    Successfully pulled image "polinux/stress" in 390ms (1.844s including waiting). Image size: 4041495 bytes.
+2m44s       Normal    Pulled              pod/qos-pressure-deploy-647b468b7d-cfz7v    Successfully pulled image "polinux/stress" in 412ms (2.257s including waiting). Image size: 4041495 bytes.
+2m44s       Normal    Started             pod/qos-pressure-deploy-647b468b7d-lf48x    Started container stress
+2m43s       Normal    Pulled              pod/qos-pressure-deploy-647b468b7d-46kzg    Successfully pulled image "polinux/stress" in 436ms (2.693s including waiting). Image size: 4041495 bytes.
+2m41s       Warning   SystemOOM           node/ai-infra-lab-control-plane             System OOM encountered, victim process: stress, pid: 12030
+2m39s       Normal    Pulled              pod/qos-pressure-deploy-647b468b7d-cfz7v    Successfully pulled image "polinux/stress" in 816ms (817ms including waiting). Image size: 4041495 bytes.
+2m37s       Warning   SystemOOM           node/ai-infra-lab-control-plane             System OOM encountered, victim process: stress, pid: 11903
+2m35s       Normal    Pulled              pod/qos-pressure-deploy-647b468b7d-68hg7    Successfully pulled image "polinux/stress" in 800ms (801ms including waiting). Image size: 4041495 bytes.
+2m33s       Warning   SystemOOM           node/ai-infra-lab-control-plane             System OOM encountered, victim process: stress, pid: 12152
+2m31s       Warning   SystemOOM           node/ai-infra-lab-control-plane             System OOM encountered, victim process: stress, pid: 12062
+2m29s       Normal    Pulled              pod/qos-pressure-deploy-647b468b7d-46kzg    Successfully pulled image "polinux/stress" in 814ms (814ms including waiting). Image size: 4041495 bytes.
+2m14s       Normal    Pulled              pod/qos-pressure-deploy-647b468b7d-68hg7    Successfully pulled image "polinux/stress" in 619ms (619ms including waiting). Image size: 4041495 bytes.
+2m3s        Normal    Pulled              pod/qos-pressure-deploy-647b468b7d-46kzg    Successfully pulled image "polinux/stress" in 614ms (615ms including waiting). Image size: 4041495 bytes.
+114s        Normal    Pulled              pod/qos-pressure-deploy-647b468b7d-cfz7v    Successfully pulled image "polinux/stress" in 737ms (738ms including waiting). Image size: 4041495 bytes.
+96s         Warning   BackOff             pod/qos-pressure-deploy-647b468b7d-cfz7v    Back-off restarting failed container stress in pod qos-pressure-deploy-647b468b7d-cfz7v_default(5987f400-cb8e-4186-bbb0-cc1f154ea734)
+88s         Normal    Pulling             pod/qos-pressure-deploy-647b468b7d-68hg7    Pulling image "polinux/stress"
+87s         Normal    Pulled              pod/qos-pressure-deploy-647b468b7d-68hg7    Successfully pulled image "polinux/stress" in 684ms (684ms including waiting). Image size: 4041495 bytes.
+87s         Normal    Started             pod/qos-pressure-deploy-647b468b7d-68hg7    Started container stress
+87s         Normal    Created             pod/qos-pressure-deploy-647b468b7d-68hg7    Created container: stress
+84s         Normal    Pulling             pod/qos-pressure-deploy-647b468b7d-cfz7v    Pulling image "polinux/stress"
+83s         Normal    Created             pod/qos-pressure-deploy-647b468b7d-cfz7v    Created container: stress
+83s         Normal    Pulled              pod/qos-pressure-deploy-647b468b7d-cfz7v    Successfully pulled image "polinux/stress" in 842ms (843ms including waiting). Image size: 4041495 bytes.
+83s         Normal    Started             pod/qos-pressure-deploy-647b468b7d-cfz7v    Started container stress
+79s         Normal    Pulled              pod/qos-pressure-deploy-647b468b7d-cjkx2    Successfully pulled image "polinux/stress" in 696ms (696ms including waiting). Image size: 4041495 bytes.
+64s         Warning   BackOff             pod/qos-pressure-deploy-647b468b7d-46kzg    Back-off restarting failed container stress in pod qos-pressure-deploy-647b468b7d-46kzg_default(221caeb1-fc56-47eb-b92b-2c4c4d4671ed)
+49s         Normal    Pulling             pod/qos-pressure-deploy-647b468b7d-46kzg    Pulling image "polinux/stress"
+47s         Normal    Pulled              pod/qos-pressure-deploy-647b468b7d-46kzg    Successfully pulled image "polinux/stress" in 1.641s (1.643s including waiting). Image size: 4041495 bytes.
+47s         Normal    Created             pod/qos-pressure-deploy-647b468b7d-46kzg    Created container: stress
+46s         Normal    Started             pod/qos-pressure-deploy-647b468b7d-46kzg    Started container stress
+44s         Warning   SystemOOM           node/ai-infra-lab-control-plane             (combined from similar events): System OOM encountered, victim process: stress, pid: 12440
+43s         Warning   BackOff             pod/qos-pressure-deploy-647b468b7d-cjkx2    Back-off restarting failed container stress in pod qos-pressure-deploy-647b468b7d-cjkx2_default(f7662193-d022-4d80-9acb-430f46135c0c)
+27s         Normal    Created             pod/qos-pressure-deploy-647b468b7d-cjkx2    Created container: stress
+27s         Normal    Pulling             pod/qos-pressure-deploy-647b468b7d-cjkx2    Pulling image "polinux/stress"
+27s         Normal    Started             pod/qos-pressure-deploy-647b468b7d-cjkx2    Started container stress
+27s         Normal    Pulled              pod/qos-pressure-deploy-647b468b7d-cjkx2    Successfully pulled image "polinux/stress" in 527ms (527ms including waiting). Image size: 4041495 bytes.
+11s         Warning   BackOff             pod/qos-pressure-deploy-647b468b7d-68hg7    Back-off restarting failed container stress in pod qos-pressure-deploy-647b468b7d-68hg7_default(613dc2d4-922a-4d24-b428-d1c96e366d8d)

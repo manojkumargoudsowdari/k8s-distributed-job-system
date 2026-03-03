@@ -1,0 +1,13 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    kubeadmConfigPatches:
+      - |
+        kind: KubeletConfiguration
+        apiVersion: kubelet.config.k8s.io/v1beta1
+        evictionHard:
+          memory.available: "1.5Gi"
+          nodefs.available: "10%"
+          imagefs.available: "10%"
+        evictionPressureTransitionPeriod: "30s"

@@ -1,0 +1,3 @@
+NAME                           CPU(cores)   MEMORY(bytes)   
+model-server-ccd5f56fc-hd62c   2m           33Mi            
+model-server-ccd5f56fc-vg6k9   2m           33Mi            

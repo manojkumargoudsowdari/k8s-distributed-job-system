@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: model-server-loadgen
+  namespace: default
+spec:
+  ttlSecondsAfterFinished: 120
+  parallelism: 8
+  completions: 8
+  template:
+    metadata:
+      labels:
+        app: model-server-loadgen
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: loadgen
+          image: curlimages/curl:8.12.1
+          command: ["sh", "-c"]
+          args:
+            - |
+              i=0
+              while [ $i -lt 180 ]; do
+                curl -s "http://model-server-svc.default.svc.cluster.local/burn?ms=300" > /dev/null
+                i=$((i+1))
+              done

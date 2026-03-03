@@ -1,0 +1,3 @@
+NAME                           READY   STATUS    RESTARTS   AGE   IP            NODE                         NOMINATED NODE   READINESS GATES
+model-server-ccd5f56fc-hd62c   1/1     Running   0          42s   10.244.0.20   ai-infra-lab-control-plane   <none>           <none>
+model-server-ccd5f56fc-vg6k9   1/1     Running   0          42s   10.244.0.19   ai-infra-lab-control-plane   <none>           <none>

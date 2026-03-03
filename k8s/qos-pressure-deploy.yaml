@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qos-pressure-deploy
+  namespace: default
+spec:
+  replicas: 6
+  selector:
+    matchLabels:
+      app: qos-pressure-deploy
+  template:
+    metadata:
+      labels:
+        app: qos-pressure-deploy
+    spec:
+      containers:
+        - name: stress
+          image: polinux/stress
+          command: ["stress"]
+          args: ["--vm", "1", "--vm-bytes", "1200M", "--vm-hang", "1"]

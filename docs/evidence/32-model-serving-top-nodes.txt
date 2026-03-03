@@ -1,0 +1,2 @@
+NAME                         CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)   
+ai-infra-lab-control-plane   247m         1%       1162Mi          18%         

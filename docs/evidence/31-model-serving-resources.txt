@@ -1,0 +1,12 @@
+NAME                           READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS     IMAGES                       SELECTOR
+deployment.apps/model-server   2/2     2            2           43s   model-server   fastapi-model-server:0.1.0   app=model-server
+
+NAME                       TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)   AGE     SELECTOR
+service/kubernetes         ClusterIP   10.96.0.1     <none>        443/TCP   5m30s   <none>
+service/model-server-svc   ClusterIP   10.96.29.28   <none>        80/TCP    43s     app=model-server
+
+NAME                                             CLASS   HOSTS         ADDRESS     PORTS   AGE
+ingress.networking.k8s.io/model-server-ingress   nginx   model.local   localhost   80      43s
+
+NAME                                                   REFERENCE                 TARGETS       MINPODS   MAXPODS   REPLICAS   AGE
+horizontalpodautoscaler.autoscaling/model-server-hpa   Deployment/model-server   cpu: 2%/60%   2         6         2          43s

@@ -1,0 +1,36 @@
+Name:             taint-test-no-toleration
+Namespace:        default
+Priority:         0
+Service Account:  default
+Node:             <none>
+Labels:           app=taint-test-no-toleration
+Annotations:      <none>
+Status:           Pending
+IP:               
+IPs:              <none>
+Containers:
+  nginx:
+    Image:        nginx:latest
+    Port:         80/TCP
+    Host Port:    0/TCP
+    Environment:  <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-z98f8 (ro)
+Conditions:
+  Type           Status
+  PodScheduled   False 
+Volumes:
+  kube-api-access-z98f8:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    Optional:                false
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type     Reason            Age   From               Message
+  ----     ------            ----  ----               -------
+  Warning  FailedScheduling  3s    default-scheduler  0/1 nodes are available: 1 node(s) had untolerated taint {gpu: true}. preemption: 0/1 nodes are available: 1 Preemption is not helpful for scheduling.

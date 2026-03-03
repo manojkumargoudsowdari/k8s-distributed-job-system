@@ -15,8 +15,10 @@ spec:
         app: web
     spec:
       containers:
-        - name: nginx
-          image: nginx:latest
+        - name: stress
+          image: polinux/stress
+          command: ["stress"]
+          args: ["--vm", "1", "--vm-bytes", "300M", "--vm-hang", "1"]
           ports:
             - containerPort: 80
           resources:
@@ -25,4 +27,4 @@ spec:
               memory: "128Mi"
             limits:
               cpu: "500m"
-              memory: "512Mi"
+              memory: "128Mi"
