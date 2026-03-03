@@ -38,7 +38,9 @@ def _build_k8s_job_manifest(job: Job, namespace: str) -> client.V1Job:
         command=job.command or None,
         args=job.args or None,
         env=env_vars or None,
-        resources=client.V1ResourceRequirements(**job.resources) if job.resources else None,
+        resources=client.V1ResourceRequirements(**job.resources)
+        if job.resources
+        else None,
     )
 
     template = client.V1PodTemplateSpec(
@@ -69,7 +71,9 @@ class Scheduler:
             raise RuntimeError("DATABASE_URL is not set")
 
         self.namespace = os.getenv("SCHEDULER_NAMESPACE", "default")
-        self.poll_interval_seconds = int(os.getenv("SCHEDULER_POLL_INTERVAL_SECONDS", "3"))
+        self.poll_interval_seconds = int(
+            os.getenv("SCHEDULER_POLL_INTERVAL_SECONDS", "3")
+        )
         self.dispatch_batch_size = int(os.getenv("SCHEDULER_DISPATCH_BATCH_SIZE", "5"))
         self.running_scan_limit = int(os.getenv("SCHEDULER_RUNNING_SCAN_LIMIT", "50"))
 
@@ -100,7 +104,9 @@ class Scheduler:
         self._reconcile_running_jobs()
 
     def _dispatch_queued_jobs(self) -> None:
-        queued_jobs = self.repo.list_jobs(status="QUEUED", limit=self.dispatch_batch_size)
+        queued_jobs = self.repo.list_jobs(
+            status="QUEUED", limit=self.dispatch_batch_size
+        )
         for job in queued_jobs:
             self._ensure_k8s_job_exists(job)
             marked = self.repo.mark_job_running(job.id)
@@ -109,23 +115,33 @@ class Scheduler:
 
     def _ensure_k8s_job_exists(self, job: Job) -> None:
         selector = f"job-system/job-id={job.id}"
-        existing = self.batch_api.list_namespaced_job(namespace=self.namespace, label_selector=selector)
+        existing = self.batch_api.list_namespaced_job(
+            namespace=self.namespace, label_selector=selector
+        )
         if existing.items:
             return
 
         manifest = _build_k8s_job_manifest(job, self.namespace)
         try:
-            created = self.batch_api.create_namespaced_job(namespace=self.namespace, body=manifest)
+            created = self.batch_api.create_namespaced_job(
+                namespace=self.namespace, body=manifest
+            )
             LOGGER.info(
                 "Created Kubernetes Job for workload",
                 extra={"job_id": str(job.id), "k8s_job_name": created.metadata.name},
             )
         except ApiException as exc:
-            LOGGER.exception("Failed to create Kubernetes Job", extra={"job_id": str(job.id)})
-            self.repo.update_job_status(job.id, "FAILED", error=f"k8s job create failed: {exc.reason}")
+            LOGGER.exception(
+                "Failed to create Kubernetes Job", extra={"job_id": str(job.id)}
+            )
+            self.repo.update_job_status(
+                job.id, "FAILED", error=f"k8s job create failed: {exc.reason}"
+            )
 
     def _reconcile_running_jobs(self) -> None:
-        running_jobs = self.repo.list_jobs(status="RUNNING", limit=self.running_scan_limit)
+        running_jobs = self.repo.list_jobs(
+            status="RUNNING", limit=self.running_scan_limit
+        )
         for job in running_jobs:
             k8s_job = self._get_k8s_job_for_job_id(job.id)
             if not k8s_job:
@@ -140,11 +156,16 @@ class Scheduler:
             if k8s_status and (k8s_status.failed or 0) > 0:
                 error = self._extract_failure_reason(k8s_status)
                 self.repo.mark_job_terminal(job.id, "FAILED", error=error)
-                LOGGER.info("Marked job as FAILED", extra={"job_id": str(job.id), "error": error})
+                LOGGER.info(
+                    "Marked job as FAILED",
+                    extra={"job_id": str(job.id), "error": error},
+                )
 
     def _get_k8s_job_for_job_id(self, job_id: UUID) -> client.V1Job | None:
         selector = f"job-system/job-id={job_id}"
-        jobs = self.batch_api.list_namespaced_job(namespace=self.namespace, label_selector=selector)
+        jobs = self.batch_api.list_namespaced_job(
+            namespace=self.namespace, label_selector=selector
+        )
         if not jobs.items:
             return None
         jobs.items.sort(key=lambda item: item.metadata.creation_timestamp, reverse=True)
@@ -160,10 +181,12 @@ class Scheduler:
 
 
 def main() -> None:
-    logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"), format="%(asctime)s %(levelname)s %(message)s")
+    logging.basicConfig(
+        level=os.getenv("LOG_LEVEL", "INFO"),
+        format="%(asctime)s %(levelname)s %(message)s",
+    )
     Scheduler().run_forever()
 
 
 if __name__ == "__main__":
     main()
-
