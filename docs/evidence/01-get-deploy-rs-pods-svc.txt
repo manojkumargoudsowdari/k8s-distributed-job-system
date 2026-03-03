@@ -1,0 +1,16 @@
+NAME                  READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES         SELECTOR
+deployment.apps/web   3/3     3            3           66s   nginx        nginx:latest   app=web
+
+NAME                             DESIRED   CURRENT   READY   AGE   CONTAINERS   IMAGES         SELECTOR
+replicaset.apps/web-6c79984869   0         0         0       66s   nginx        nginx:latest   app=web,pod-template-hash=6c79984869
+replicaset.apps/web-7f45bc5875   3         3         3       32s   nginx        nginx:latest   app=web,pod-template-hash=7f45bc5875
+replicaset.apps/web-7f8868fb57   0         0         0       48s   nginx        nginx:latest   app=web,pod-template-hash=7f8868fb57
+
+NAME                       READY   STATUS    RESTARTS   AGE   IP            NODE                         NOMINATED NODE   READINESS GATES
+pod/web-7f45bc5875-bhrlm   1/1     Running   0          27s   10.244.0.10   ai-infra-lab-control-plane   <none>           <none>
+pod/web-7f45bc5875-clr5w   1/1     Running   0          29s   10.244.0.9    ai-infra-lab-control-plane   <none>           <none>
+pod/web-7f45bc5875-s5xl7   1/1     Running   0          32s   10.244.0.8    ai-infra-lab-control-plane   <none>           <none>
+
+NAME                 TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE   SELECTOR
+service/kubernetes   ClusterIP   10.96.0.1      <none>        443/TCP        93s   <none>
+service/web-svc      NodePort    10.96.180.80   <none>        80:32331/TCP   66s   app=web

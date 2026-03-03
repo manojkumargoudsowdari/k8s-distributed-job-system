@@ -1,0 +1,4 @@
+NAME                   READY   STATUS    RESTARTS   AGE   IP            NODE                         NOMINATED NODE   READINESS GATES
+web-7f45bc5875-bhrlm   1/1     Running   0          28s   10.244.0.10   ai-infra-lab-control-plane   <none>           <none>
+web-7f45bc5875-clr5w   1/1     Running   0          30s   10.244.0.9    ai-infra-lab-control-plane   <none>           <none>
+web-7f45bc5875-s5xl7   1/1     Running   0          33s   10.244.0.8    ai-infra-lab-control-plane   <none>           <none>

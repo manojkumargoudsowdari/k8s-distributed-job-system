@@ -1,0 +1,47 @@
+Name:                   web
+Namespace:              default
+CreationTimestamp:      Tue, 03 Mar 2026 06:27:03 -0500
+Labels:                 <none>
+Annotations:            deployment.kubernetes.io/revision: 3
+Selector:               app=web
+Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=web
+  Containers:
+   nginx:
+    Image:      nginx:latest
+    Port:       80/TCP
+    Host Port:  0/TCP
+    Limits:
+      cpu:     500m
+      memory:  512Mi
+    Requests:
+      cpu:         100m
+      memory:      128Mi
+    Environment:   <none>
+    Mounts:        <none>
+  Volumes:         <none>
+  Node-Selectors:  <none>
+  Tolerations:     <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  web-6c79984869 (0/0 replicas created), web-7f8868fb57 (0/0 replicas created)
+NewReplicaSet:   web-7f45bc5875 (3/3 replicas created)
+Events:
+  Type    Reason             Age   From                   Message
+  ----    ------             ----  ----                   -------
+  Normal  ScalingReplicaSet  66s   deployment-controller  Scaled up replica set web-6c79984869 from 0 to 3
+  Normal  ScalingReplicaSet  48s   deployment-controller  Scaled up replica set web-7f8868fb57 from 0 to 1
+  Normal  ScalingReplicaSet  32s   deployment-controller  Scaled down replica set web-7f8868fb57 from 1 to 0
+  Normal  ScalingReplicaSet  32s   deployment-controller  Scaled up replica set web-7f45bc5875 from 0 to 1
+  Normal  ScalingReplicaSet  29s   deployment-controller  Scaled down replica set web-6c79984869 from 3 to 2
+  Normal  ScalingReplicaSet  29s   deployment-controller  Scaled up replica set web-7f45bc5875 from 1 to 2
+  Normal  ScalingReplicaSet  27s   deployment-controller  Scaled down replica set web-6c79984869 from 2 to 1
+  Normal  ScalingReplicaSet  27s   deployment-controller  Scaled up replica set web-7f45bc5875 from 2 to 3
+  Normal  ScalingReplicaSet  25s   deployment-controller  Scaled down replica set web-6c79984869 from 1 to 0

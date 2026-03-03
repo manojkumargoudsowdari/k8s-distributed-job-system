@@ -1,0 +1,30 @@
+32s         Normal    ScalingReplicaSet         deployment/web                    Scaled up replica set web-7f45bc5875 from 0 to 1
+32s         Normal    SuccessfulCreate          replicaset/web-7f45bc5875         Created pod: web-7f45bc5875-s5xl7
+32s         Normal    ScalingReplicaSet         deployment/web                    Scaled down replica set web-7f8868fb57 from 1 to 0
+31s         Normal    Pulling                   pod/web-7f45bc5875-s5xl7          Pulling image "nginx:latest"
+30s         Normal    Created                   pod/web-7f45bc5875-s5xl7          Created container: nginx
+30s         Normal    Pulled                    pod/web-7f45bc5875-s5xl7          Successfully pulled image "nginx:latest" in 577ms (577ms including waiting). Image size: 62944796 bytes.
+30s         Normal    Started                   pod/web-7f45bc5875-s5xl7          Started container nginx
+29s         Normal    Scheduled                 pod/web-7f45bc5875-clr5w          Successfully assigned default/web-7f45bc5875-clr5w to ai-infra-lab-control-plane
+29s         Normal    Pulling                   pod/web-7f45bc5875-clr5w          Pulling image "nginx:latest"
+29s         Normal    ScalingReplicaSet         deployment/web                    Scaled up replica set web-7f45bc5875 from 1 to 2
+29s         Normal    ScalingReplicaSet         deployment/web                    Scaled down replica set web-6c79984869 from 3 to 2
+29s         Normal    Killing                   pod/web-6c79984869-pmh5l          Stopping container nginx
+29s         Normal    SuccessfulDelete          replicaset/web-6c79984869         Deleted pod: web-6c79984869-pmh5l
+29s         Normal    SuccessfulCreate          replicaset/web-7f45bc5875         Created pod: web-7f45bc5875-clr5w
+28s         Normal    Pulled                    pod/web-7f45bc5875-clr5w          Successfully pulled image "nginx:latest" in 549ms (549ms including waiting). Image size: 62944796 bytes.
+28s         Normal    Created                   pod/web-7f45bc5875-clr5w          Created container: nginx
+28s         Normal    Started                   pod/web-7f45bc5875-clr5w          Started container nginx
+27s         Normal    SuccessfulCreate          replicaset/web-7f45bc5875         Created pod: web-7f45bc5875-bhrlm
+27s         Normal    Scheduled                 pod/web-7f45bc5875-bhrlm          Successfully assigned default/web-7f45bc5875-bhrlm to ai-infra-lab-control-plane
+27s         Normal    SuccessfulDelete          replicaset/web-6c79984869         Deleted pod: web-6c79984869-lnwn7
+27s         Normal    Pulling                   pod/web-7f45bc5875-bhrlm          Pulling image "nginx:latest"
+27s         Normal    Pulled                    pod/web-7f45bc5875-bhrlm          Successfully pulled image "nginx:latest" in 421ms (421ms including waiting). Image size: 62944796 bytes.
+27s         Normal    Killing                   pod/web-6c79984869-lnwn7          Stopping container nginx
+27s         Normal    ScalingReplicaSet         deployment/web                    Scaled down replica set web-6c79984869 from 2 to 1
+27s         Normal    ScalingReplicaSet         deployment/web                    Scaled up replica set web-7f45bc5875 from 2 to 3
+26s         Normal    Created                   pod/web-7f45bc5875-bhrlm          Created container: nginx
+26s         Normal    Started                   pod/web-7f45bc5875-bhrlm          Started container nginx
+25s         Normal    SuccessfulDelete          replicaset/web-6c79984869         Deleted pod: web-6c79984869-z6ccx
+25s         Normal    Killing                   pod/web-6c79984869-z6ccx          Stopping container nginx
+25s         Normal    ScalingReplicaSet         deployment/web                    Scaled down replica set web-6c79984869 from 1 to 0
