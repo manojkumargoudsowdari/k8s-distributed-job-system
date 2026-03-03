@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: job-system-api
+  namespace: default
+  labels:
+    app: job-system-api
+spec:
+  type: ClusterIP
+  selector:
+    app: job-system-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000
