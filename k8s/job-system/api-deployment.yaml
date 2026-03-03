@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: job-system-api
+  namespace: default
+  labels:
+    app: job-system-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: job-system-api
+  template:
+    metadata:
+      labels:
+        app: job-system-api
+    spec:
+      containers:
+        - name: api
+          image: job-system-api:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DATABASE_URL
+              value: postgresql://jobs:jobs@job-system-postgres.default.svc.cluster.local:5432/jobs
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

@@ -1,0 +1,22 @@
+NAME                             READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES                 SELECTOR
+deployment.apps/job-system-api   1/1     1            1           33s   api          job-system-api:0.1.0   app=job-system-api
+
+NAME                                       DESIRED   CURRENT   READY   AGE   CONTAINERS   IMAGES                 SELECTOR
+replicaset.apps/job-system-api-c8bcc58d8   1         1         1       33s   api          job-system-api:0.1.0   app=job-system-api,pod-template-hash=c8bcc58d8
+
+NAME                                 READY   STATUS    RESTARTS   AGE   IP            NODE                         NOMINATED NODE   READINESS GATES
+pod/job-system-api-c8bcc58d8-wz6w7   1/1     Running   0          33s   10.244.0.23   ai-infra-lab-control-plane   <none>           <none>
+
+NAME                     TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE   SELECTOR
+service/job-system-api   ClusterIP   10.96.196.166   <none>        80/TCP    33s   app=job-system-api
+NAME                                  READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES               SELECTOR
+deployment.apps/job-system-postgres   1/1     1            1           76s   postgres     postgres:16-alpine   app=job-system-postgres
+
+NAME                                             DESIRED   CURRENT   READY   AGE   CONTAINERS   IMAGES               SELECTOR
+replicaset.apps/job-system-postgres-6576fb8b6d   1         1         1       76s   postgres     postgres:16-alpine   app=job-system-postgres,pod-template-hash=6576fb8b6d
+
+NAME                                       READY   STATUS    RESTARTS   AGE   IP            NODE                         NOMINATED NODE   READINESS GATES
+pod/job-system-postgres-6576fb8b6d-nfhm2   1/1     Running   0          76s   10.244.0.22   ai-infra-lab-control-plane   <none>           <none>
+
+NAME                          TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE   SELECTOR
+service/job-system-postgres   ClusterIP   10.96.14.162   <none>        5432/TCP   76s   app=job-system-postgres

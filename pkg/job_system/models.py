@@ -17,6 +17,8 @@ class Job:
     attempts: int
     priority: int
     max_retries: int
+    backoff_seconds: int
+    timeout_seconds: int | None
     created_at: datetime
     updated_at: datetime
     idempotency_key: str | None = None

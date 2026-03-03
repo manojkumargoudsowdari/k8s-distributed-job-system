@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict
 from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID, uuid4
@@ -32,6 +31,8 @@ class JobRepository:
         resources: dict[str, Any] | None = None,
         priority: int = 0,
         max_retries: int = 0,
+        backoff_seconds: int = 5,
+        timeout_seconds: int | None = None,
         idempotency_key: str | None = None,
     ) -> Job:
         job_id = uuid4()
@@ -44,11 +45,12 @@ class JobRepository:
         query = """
         INSERT INTO jobs (
             id, idempotency_key, queue, image, command, args, env, resources,
-            priority, max_retries, status, created_at, queued_at, updated_at
+            priority, max_retries, backoff_seconds, timeout_seconds, status, created_at, queued_at, updated_at
         )
         VALUES (
             %(id)s, %(idempotency_key)s, %(queue)s, %(image)s, %(command)s, %(args)s,
             %(env)s, %(resources)s, %(priority)s, %(max_retries)s,
+            %(backoff_seconds)s, %(timeout_seconds)s,
             'QUEUED', %(created_at)s, %(queued_at)s, %(updated_at)s
         )
         RETURNING *
@@ -64,6 +66,8 @@ class JobRepository:
             "resources": Jsonb(resources),
             "priority": priority,
             "max_retries": max_retries,
+            "backoff_seconds": backoff_seconds,
+            "timeout_seconds": timeout_seconds,
             "created_at": now,
             "queued_at": now,
             "updated_at": now,
@@ -78,6 +82,13 @@ class JobRepository:
         query = "SELECT * FROM jobs WHERE id = %(id)s"
         with self.pool.connection() as conn, conn.cursor() as cur:
             cur.execute(query, {"id": job_id})
+            row = cur.fetchone()
+        return _row_to_job(row) if row else None
+
+    def get_job_by_idempotency_key(self, idempotency_key: str) -> Job | None:
+        query = "SELECT * FROM jobs WHERE idempotency_key = %(idempotency_key)s"
+        with self.pool.connection() as conn, conn.cursor() as cur:
+            cur.execute(query, {"idempotency_key": idempotency_key})
             row = cur.fetchone()
         return _row_to_job(row) if row else None
 
@@ -125,6 +136,8 @@ def _row_to_job(row: dict[str, Any]) -> Job:
         resources=row.get("resources"),
         priority=row["priority"],
         max_retries=row["max_retries"],
+        backoff_seconds=row["backoff_seconds"],
+        timeout_seconds=row.get("timeout_seconds"),
         status=row["status"],
         attempts=row["attempts"],
         desired_status=row.get("desired_status"),

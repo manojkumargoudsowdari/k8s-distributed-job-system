@@ -1,0 +1,5 @@
+                  id                  | idempotency_key |  queue  | status | max_retries | backoff_seconds 
+--------------------------------------+-----------------+---------+--------+-------------+-----------------
+ d5e6954a-d3be-4ae3-81f7-49d9400764fa | m3-2-key-001    | default | QUEUED |           2 |               5
+(1 row)
+

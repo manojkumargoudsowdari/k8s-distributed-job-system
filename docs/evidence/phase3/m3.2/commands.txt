@@ -1,0 +1,41 @@
+# Build and load API image into Kind node
+docker build -f Dockerfile.api -t job-system-api:0.1.0 .
+docker save -o job-system-api.tar job-system-api:0.1.0
+docker cp "D:\Work\Code\Kubernetes\k8s-distributed-job-system\job-system-api.tar" ai-infra-lab-control-plane:/job-system-api.tar
+docker exec ai-infra-lab-control-plane ctr -n k8s.io images import /job-system-api.tar
+
+# Deploy Postgres + API
+kubectl apply -f k8s/job-system/postgres.yaml
+kubectl rollout status deployment/job-system-postgres --timeout=180s
+kubectl apply -f k8s/job-system/api-deployment.yaml
+kubectl apply -f k8s/job-system/api-service.yaml
+kubectl rollout status deployment/job-system-api --timeout=180s
+
+# Apply migration in Postgres pod
+$pod=(kubectl get pods -l app=job-system-postgres -o jsonpath='{.items[0].metadata.name}')
+kubectl cp db/migrations/001_create_jobs.sql "default/${pod}:/tmp/001_create_jobs.sql"
+kubectl exec $pod -- psql -U jobs -d jobs -f /tmp/001_create_jobs.sql
+
+# Capture 01
+kubectl get deploy,rs,pods,svc -l app=job-system-api -o wide > docs/evidence/phase3/m3.2/outputs/01-kubectl-get-all.txt
+kubectl get deploy,rs,pods,svc -l app=job-system-postgres -o wide >> docs/evidence/phase3/m3.2/outputs/01-kubectl-get-all.txt
+
+# Port-forward API for clean curl evidence
+kubectl port-forward svc/job-system-api 18080:80
+
+# Capture 02-06 from another terminal
+curl -s http://127.0.0.1:18080/healthz
+curl -s -X POST http://127.0.0.1:18080/jobs \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: m3-2-key-001" \
+  -d '{"image":"busybox:1.36","command":["echo"],"args":["hello-m32"],"queue":"default","max_retries":2,"backoff_seconds":5}'
+curl -s -X POST http://127.0.0.1:18080/jobs \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: m3-2-key-001" \
+  -d '{"image":"busybox:1.36","command":["echo"],"args":["hello-m32"],"queue":"default","max_retries":2,"backoff_seconds":5}'
+curl -s http://127.0.0.1:18080/jobs/<job_id>
+curl -s "http://127.0.0.1:18080/jobs?status=QUEUED&limit=10"
+
+# Capture 07
+kubectl exec $pod -- psql -U jobs -d jobs -c \
+  "SELECT id, idempotency_key, queue, status, max_retries, backoff_seconds FROM jobs WHERE id = '<job_id>';"

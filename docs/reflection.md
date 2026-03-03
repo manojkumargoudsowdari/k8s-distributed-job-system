@@ -545,6 +545,48 @@ Evidence:
 - `docs/evidence/phase3/m3.1/runbook.md`
 - `docs/evidence/phase3/m3.1/commands.txt`
 
+## 14) Phase 3 M3.2 - Job API + Idempotent Submit
+
+What changed:
+
+- Added API service:
+  - `services/api/main.py`
+  - `services/api/__init__.py`
+  - `services/__init__.py`
+- Added API image definition:
+  - `Dockerfile.api`
+  - `services/api/requirements.txt`
+- Added M3.2 Kubernetes manifests:
+  - `k8s/job-system/postgres.yaml`
+  - `k8s/job-system/api-deployment.yaml`
+  - `k8s/job-system/api-service.yaml`
+- Extended M3.1 DB/model support for API contract:
+  - `pkg/job_system/db.py` (idempotency lookup + backoff/timeout fields)
+  - `pkg/job_system/models.py`
+- Added minimal API tests:
+  - `tests/test_m3_2_api.py`
+
+What was proven:
+
+- API and Postgres deployed in cluster and reachable.
+- `POST /jobs` returns `job_id` and `QUEUED`.
+- Re-submit with same `Idempotency-Key` and same body returns same `job_id`.
+- `GET /jobs/{job_id}` returns full persisted job payload.
+- `GET /jobs?status=QUEUED&limit=10` filters as expected.
+- Postgres row verification confirms stored `idempotency_key`, `status`, and retry/backoff fields.
+
+Evidence:
+
+- `docs/evidence/phase3/m3.2/outputs/01-kubectl-get-all.txt`
+- `docs/evidence/phase3/m3.2/outputs/02-api-health.txt`
+- `docs/evidence/phase3/m3.2/outputs/03-submit-job-1.txt`
+- `docs/evidence/phase3/m3.2/outputs/04-submit-idempotent-repeat.txt`
+- `docs/evidence/phase3/m3.2/outputs/05-get-job.txt`
+- `docs/evidence/phase3/m3.2/outputs/06-list-jobs-status.txt`
+- `docs/evidence/phase3/m3.2/outputs/07-db-row-verification.txt`
+- `docs/evidence/phase3/m3.2/runbook.md`
+- `docs/evidence/phase3/m3.2/commands.txt`
+
 ## Notes
 
 Full raw outputs are stored in `docs/evidence/`:
