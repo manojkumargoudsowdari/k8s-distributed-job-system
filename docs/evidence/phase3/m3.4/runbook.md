@@ -5,7 +5,7 @@
 Validate reliability behaviors on top of M3.3 scheduler dispatch:
 
 - Retry policy using `max_retries` and attempt tracking.
-- Exponential backoff gate via `next_retry_at`.
+- Increasing (triangular) backoff gate via `next_retry_at`.
 - Timeout enforcement for long-running jobs.
 - Recovery from scheduler pod restart.
 
