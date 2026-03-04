@@ -1,0 +1,179 @@
+=== docs/contracts/api.md ===
+# API Contract
+
+## Purpose and Scope
+This API is the control-plane interface for job submission and lifecycle reads in the distributed job system.
+
+It provides:
+- Job submission with tenant identity and optional idempotency.
+- Job retrieval/listing.
+- Queued-job cancellation.
+- Health and metrics endpoints for operations.
+
+It does not provide:
+- Direct worker/container execution control by clients.
+- Direct Kubernetes Job CRUD as a public API.
+- Cross-tenant authorization enforcement on read paths (planned for Phase 4 M4.3).
+
+## Global Rules
+
+### Required Header
+- `X-Tenant-Id` is required for `POST /jobs`.
+- Validation rule: must match `^[A-Za-z0-9_-]{1,64}$`.
+
+### Content Type
+- `POST /jobs` expects `Content-Type: application/json`.
+
+### Idempotency
+- Supported on `POST /jobs` via optional `Idempotency-Key` header.
+- Behavior:
+  - same key + same request fingerprint + same tenant -> returns existing `job_id`.
+  - same key reused with different payload -> `409 Conflict`.
+  - same key reused across different tenant -> `409 Conflict`.
+
+### Base URL (Local/Dev)
+- Typical local dev URL (with port-forward): `http://127.0.0.1:18080`
+- In-cluster service: `job-system-api.default.svc.cluster.local:80` -> container port `8000`.
+
+## Endpoint Catalog
+
+| Method | Path | Description | Tenant/Header Requirement | Success Codes |
+|---|---|---|---|---|
+| `GET` | `/healthz` | Liveness/readiness health probe | None | `200` |
+| `GET` | `/metrics` | Prometheus metrics | None | `200` |
+| `POST` | `/jobs` | Submit a new job | `X-Tenant-Id` required, `Idempotency-Key` optional | `201` |
+| `GET` | `/jobs/{job_id}` | Get one job by id | None (current behavior) | `200` |
+| `GET` | `/jobs?status=&limit=` | List jobs with optional status filter and limit | None (current behavior) | `200` |
+| `POST` | `/jobs/{job_id}/cancel` | Cancel queued job | None (current behavior) | `200` |
+
+## Detailed Endpoint Specs
+
+### GET `/healthz`
+Example request:
+```bash
+curl -s http://127.0.0.1:18080/healthz
+```
+Success response:
+```json
+{"status":"ok"}
+```
+
+### GET `/metrics`
+Example request:
+```bash
+curl -s http://127.0.0.1:18080/metrics | grep job_system_
+```
+Success response: Prometheus text exposition.
+
+### POST `/jobs`
+Example request:
+```bash
+curl -s -X POST http://127.0.0.1:18080/jobs \
+  -H "Content-Type: application/json" \
+  -H "X-Tenant-Id: team_alpha" \
+  -H "Idempotency-Key: submit-001" \
+  -d '{
+    "image":"busybox:1.36",
+    "command":["sh","-c"],
+    "args":["echo hello; exit 0"],
+    "queue":"default",
+    "max_retries":1,
+    "backoff_seconds":5
+  }'
+```
+
+Success response (`201`):
+```json
+{"job_id":"<uuid>","status":"QUEUED"}
+```
+
+Failure examples:
+- Missing tenant header (`400`):
+```json
+{"detail":"X-Tenant-Id header is required"}
+```
+- Invalid tenant header (`400`):
+```json
+{"detail":"X-Tenant-Id must match ^[A-Za-z0-9_-]{1,64}$"}
+```
+- Idempotency conflict (`409`):
+```json
+{"detail":"Idempotency-Key conflict: request body differs from existing job"}
+```
+
+### GET `/jobs/{job_id}`
+Example request:
+```bash
+curl -s http://127.0.0.1:18080/jobs/<job_id>
+```
+Success response (`200`) fields include:
+- `id`, `tenant_id`, `status`, `attempts`
+- spec fields (`image`, `command`, `args`, `env`, `resources`, `queue`, `priority`)
+- retry/runtime fields (`max_retries`, `backoff_seconds`, `timeout_seconds`, `last_error`, `next_retry_at`)
+- timestamps (`created_at`, `queued_at`, `started_at`, `finished_at`, `updated_at`)
+
+Not found (`404`):
+```json
+{"detail":"Job not found"}
+```
+
+### GET `/jobs?status=&limit=`
+Example request:
+```bash
+curl -s "http://127.0.0.1:18080/jobs?status=QUEUED&limit=10"
+```
+Success response (`200`): JSON array of `JobResponse` objects.
+
+Validation failure (`422`) example (limit outside range):
+```json
+{"detail":[{"loc":["query","limit"],"msg":"...","type":"..."}]}
+```
+
+### POST `/jobs/{job_id}/cancel`
+Example request:
+```bash
+curl -s -X POST http://127.0.0.1:18080/jobs/<job_id>/cancel
+```
+Success response (`200`):
+```json
+{"job_id":"<uuid>","status":"CANCELED"}
+```
+
+Failure responses:
+- Not found (`404`):
+```json
+{"detail":"Job not found"}
+```
+- Conflict for non-queued jobs (`409`):
+```json
+{"detail":"Only QUEUED jobs can be canceled in M3.2"}
+```
+
+## Error Model
+
+Current canonical error envelope (FastAPI default):
+- Manual API errors use:
+  - `{"detail":"<message>"}`
+- Validation/parsing errors use:
+  - `{"detail":[...validation entries...]}` with HTTP `422`.
+
+Common failure mappings:
+- Missing `X-Tenant-Id` on submit -> `400`
+- Invalid `X-Tenant-Id` format -> `400`
+- Invalid request body/schema -> `422`
+- Job not found (`GET /jobs/{id}`, `POST /jobs/{id}/cancel`) -> `404`
+- Idempotency conflict -> `409`
+- Tenant-scoped read denied -> not implemented yet; planned in Phase 4 M4.3
+
+## Observability Hooks
+- API logs include correlation fields such as `job_id`, `status`, `attempts`, and idempotency conflict markers.
+- Metrics endpoint (`/metrics`) exposes `job_system_*` metrics from shared metrics module.
+- No explicit request-id middleware is implemented in current API path.
+
+## Links
+- Job lifecycle contract: [job-lifecycle.md](/mnt/d/Work/Code/Kubernetes/k8s-distributed-job-system/docs/contracts/job-lifecycle.md)
+- Phase 4 plan: [phase4.md](/mnt/d/Work/Code/Kubernetes/k8s-distributed-job-system/docs/plans/phase4.md)
+- P0.3 evidence pack: [docs/evidence/phase0/p0.3/](/mnt/d/Work/Code/Kubernetes/k8s-distributed-job-system/docs/evidence/phase0/p0.3)
+
+=== README API contract link ===
+23:  - `docs/contracts/api.md`

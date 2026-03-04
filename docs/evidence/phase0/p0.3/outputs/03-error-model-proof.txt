@@ -1,0 +1,53 @@
+Error model proof pointers from code:
+
+Tenant header extraction + validation:
+21:TENANT_ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+158:    tenant_id: str | None = Header(default=None, alias="X-Tenant-Id"),
+165:            detail="X-Tenant-Id header is required",
+167:    if not TENANT_ID_PATTERN.fullmatch(tenant_id):
+170:            detail="X-Tenant-Id must match ^[A-Za-z0-9_-]{1,64}$",
+
+HTTPException usage and status mapping:
+13:from fastapi import Depends, FastAPI, Header, HTTPException, Query, Response, status
+154:    "/jobs", response_model=JobSubmitResponse, status_code=status.HTTP_201_CREATED
+163:        raise HTTPException(
+164:            status_code=status.HTTP_400_BAD_REQUEST,
+168:        raise HTTPException(
+169:            status_code=status.HTTP_400_BAD_REQUEST,
+177:                raise HTTPException(
+178:                    status_code=status.HTTP_409_CONFLICT,
+185:                raise HTTPException(
+186:                    status_code=status.HTTP_409_CONFLICT,
+218:        raise HTTPException(
+219:            status_code=status.HTTP_409_CONFLICT,
+231:        raise HTTPException(
+232:            status_code=status.HTTP_404_NOT_FOUND, detail="Job not found"
+260:        raise HTTPException(
+261:            status_code=status.HTTP_404_NOT_FOUND, detail="Job not found"
+265:        raise HTTPException(
+266:            status_code=status.HTTP_409_CONFLICT,
+272:        raise HTTPException(
+273:            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+
+Request validation constraints (Pydantic + query bounds -> 422 on invalid input):
+25:    image: str = Field(min_length=1)
+26:    command: list[str] = Field(default_factory=list)
+27:    args: list[str] = Field(default_factory=list)
+28:    env: dict[str, Any] = Field(default_factory=dict)
+29:    resources: dict[str, Any] = Field(default_factory=dict)
+30:    max_retries: int = Field(default=0, ge=0)
+31:    backoff_seconds: int = Field(default=5, ge=0)
+32:    timeout_seconds: int | None = Field(default=None, ge=1)
+33:    queue: str = Field(default="default", min_length=1)
+242:    status_filter: str | None = Query(default=None, alias="status"),
+243:    limit: int = Query(default=50, ge=1, le=200),
+
+Idempotency conflict messages:
+179:                    detail="Idempotency-Key conflict: key already used by a different tenant",
+187:                    detail="Idempotency-Key conflict: request body differs from existing job",
+220:            detail="Idempotency-Key conflict: request body differs from existing job",
+
+Not found / cancel conflict deterministic messages:
+232:            status_code=status.HTTP_404_NOT_FOUND, detail="Job not found"
+261:            status_code=status.HTTP_404_NOT_FOUND, detail="Job not found"
+267:            detail="Only QUEUED jobs can be canceled in M3.2",

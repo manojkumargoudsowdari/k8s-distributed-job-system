@@ -1,0 +1,50 @@
+API source map (authoritative docs inputs)
+
+Inspected files:
+- services/api/main.py
+- services/api/requirements.txt
+- Dockerfile.api
+- k8s/job-system/api-deployment.yaml
+- k8s/job-system/api-service.yaml
+
+Entrypoint + routing registration:
+- FastAPI app instantiated in services/api/main.py (`app = FastAPI(...)`).
+- Endpoints registered via decorators in same file (`@app.get`, `@app.post`).
+
+Request/response models:
+- Request model: JobSpec
+- Response models: JobSubmitResponse, JobResponse, CancelResponse
+
+Tenant extraction/validation:
+- Header extraction in submit endpoint:
+  - `tenant_id: str | None = Header(default=None, alias="X-Tenant-Id")`
+- Validation in submit endpoint:
+  - missing tenant -> HTTP 400, detail="X-Tenant-Id header is required"
+  - invalid tenant -> HTTP 400, detail="X-Tenant-Id must match ^[A-Za-z0-9_-]{1,64}$"
+
+Error formatting behavior:
+- Errors are raised with FastAPI HTTPException(status_code=..., detail="...").
+- Default FastAPI error body shape applies:
+  - {"detail": "..."} for manual HTTPException
+  - {"detail": [...]} for Pydantic request validation failures (422)
+
+OpenAPI/Swagger:
+- FastAPI default OpenAPI generation is enabled (no disable/override found).
+- Standard docs endpoints are available by FastAPI defaults (`/openapi.json`, `/docs`, `/redoc`).
+
+Base URL / port (local/dev reality):
+- Uvicorn in Dockerfile.api binds 0.0.0.0:8000.
+- In-cluster service is ClusterIP `job-system-api` port 80 -> targetPort 8000.
+- Common local dev workflow in repo: `kubectl port-forward svc/job-system-api 18080:80`, then use `http://127.0.0.1:18080`.
+
+Public API endpoints discovered from code:
+- GET /healthz
+- GET /metrics
+- POST /jobs
+- GET /jobs/{job_id}
+- GET /jobs?status=&limit=
+- POST /jobs/{job_id}/cancel
+
+Required headers discovered:
+- POST /jobs: X-Tenant-Id (required), Idempotency-Key (optional)
+- Other endpoints: no required headers currently enforced in code.
