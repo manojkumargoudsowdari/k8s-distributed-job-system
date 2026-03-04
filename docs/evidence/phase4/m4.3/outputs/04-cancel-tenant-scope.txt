@@ -1,0 +1,4 @@
+cross_cancel_status= 404
+cross_cancel_body= {'detail': 'Job not found'}
+owner_cancel_status= 200
+owner_cancel_body= {'job_id': 'f7404b7e-2ccd-418a-b85d-d094aec56f7f', 'status': 'CANCELED'}

@@ -125,8 +125,12 @@ kubectl rollout status deployment/job-system-scheduler --timeout=180s
 DB_POD=$(kubectl get pods -l app=job-system-postgres -o jsonpath='{.items[0].metadata.name}')
 kubectl cp db/migrations/001_create_jobs.sql default/$DB_POD:/tmp/001_create_jobs.sql
 kubectl cp db/migrations/002_m3_4_reliability.sql default/$DB_POD:/tmp/002_m3_4_reliability.sql
+kubectl cp db/migrations/003_m4_1_tenant_identity.sql default/$DB_POD:/tmp/003_m4_1_tenant_identity.sql
+kubectl cp db/migrations/004_m4_3_tenant_scope_audit.sql default/$DB_POD:/tmp/004_m4_3_tenant_scope_audit.sql
 kubectl exec $DB_POD -- psql -U jobs -d jobs -f /tmp/001_create_jobs.sql
 kubectl exec $DB_POD -- psql -U jobs -d jobs -f /tmp/002_m3_4_reliability.sql
+kubectl exec $DB_POD -- psql -U jobs -d jobs -f /tmp/003_m4_1_tenant_identity.sql
+kubectl exec $DB_POD -- psql -U jobs -d jobs -f /tmp/004_m4_3_tenant_scope_audit.sql
 ```
 
 ### 4) Submit jobs through API

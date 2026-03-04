@@ -24,6 +24,11 @@ Identity and tenancy:
 - `tenant_id TEXT NOT NULL`
 - `idempotency_key TEXT UNIQUE`
 
+Audit metadata:
+- `submitted_by TEXT`
+- `request_id TEXT`
+- `created_from_ip TEXT`
+
 Execution spec:
 - `queue TEXT NOT NULL DEFAULT 'default'`
 - `image TEXT NOT NULL`

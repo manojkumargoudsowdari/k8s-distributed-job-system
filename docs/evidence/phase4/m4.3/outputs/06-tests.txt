@@ -1,0 +1,14 @@
+Command: python -m ruff check .
+
+All checks passed!
+
+Command: python -m unittest discover -s tests -p 'test_*.py'
+
+.cancel_not_found tenant_id=tenant-b job_id=aad699ef-c5b9-42bb-a48c-ef14d9b0cb22
+.get_not_found tenant_id=tenant-b job_id=952fd058-9aa5-468b-b16d-3b4c797b34c4
+..idempotency_conflict idempotency_key=same-key
+.............
+----------------------------------------------------------------------
+Ran 17 tests in 0.103s
+System.Management.Automation.RemoteException
+OK

@@ -1,0 +1,27 @@
+Migration and schema pointers:
+
+pkg/job_system/models.py:26:    submitted_by: str | None = None
+pkg/job_system/models.py:27:    request_id: str | None = None
+pkg/job_system/models.py:28:    created_from_ip: str | None = None
+pkg/job_system/db.py:39:        submitted_by: str | None = None,
+pkg/job_system/db.py:40:        request_id: str | None = None,
+pkg/job_system/db.py:41:        created_from_ip: str | None = None,
+pkg/job_system/db.py:54:            submitted_by, request_id, created_from_ip,
+pkg/job_system/db.py:61:            %(submitted_by)s, %(request_id)s, %(created_from_ip)s,
+pkg/job_system/db.py:80:            "submitted_by": submitted_by,
+pkg/job_system/db.py:81:            "request_id": request_id,
+pkg/job_system/db.py:82:            "created_from_ip": created_from_ip,
+pkg/job_system/db.py:343:        submitted_by=row.get("submitted_by"),
+pkg/job_system/db.py:344:        request_id=row.get("request_id"),
+pkg/job_system/db.py:345:        created_from_ip=row.get("created_from_ip"),
+db/migrations/004_m4_3_tenant_scope_audit.sql:5:ADD COLUMN IF NOT EXISTS submitted_by TEXT;
+db/migrations/004_m4_3_tenant_scope_audit.sql:8:ADD COLUMN IF NOT EXISTS request_id TEXT;
+db/migrations/004_m4_3_tenant_scope_audit.sql:11:ADD COLUMN IF NOT EXISTS created_from_ip TEXT;
+
+Sample persisted audit fields via API submit:
+
+submit_status= 201
+job_id= a3b21a0d-720f-4430-9c43-a12745de9a81
+submitted_by= alice
+request_id= req-123
+created_from_ip= testclient

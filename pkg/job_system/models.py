@@ -23,6 +23,9 @@ class Job:
     created_at: datetime
     updated_at: datetime
     idempotency_key: str | None = None
+    submitted_by: str | None = None
+    request_id: str | None = None
+    created_from_ip: str | None = None
     env: dict[str, Any] | None = None
     resources: dict[str, Any] | None = None
     desired_status: str | None = None
