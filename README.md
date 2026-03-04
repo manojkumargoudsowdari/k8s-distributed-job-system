@@ -155,6 +155,10 @@ Expected:
   - `job-system/job-id`
   - `job-system/attempt`
 
+Scheduler tenant quota knob:
+- `TENANT_MAX_RUNNING` (default `2`) controls max concurrently running jobs per tenant.
+- Configured in [scheduler-deployment.yaml](/mnt/d/Work/Code/Kubernetes/k8s-distributed-job-system/k8s/job-system/scheduler-deployment.yaml).
+
 ### 6) Verify metrics and logs
 
 API metrics:

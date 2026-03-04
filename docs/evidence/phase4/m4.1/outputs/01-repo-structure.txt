@@ -1,0 +1,42 @@
+# 01 Repo Structure + Inspection Findings
+
+## Branch and baseline
+- Branch: feature/m4.1-tenant-identity-quotas
+- Working tree was clean before implementation.
+
+## Top-level tree (depth <=4)
+- .github/
+- app/
+- db/
+- docs/
+- k8s/
+- pkg/
+- scripts/
+- services/
+- tests/
+
+## Key implementation paths
+- API submit + validation: services/api/main.py
+- Scheduler dispatch/reconcile: services/scheduler/main.py
+- DB layer + repository: pkg/job_system/db.py
+- Domain model: pkg/job_system/models.py
+- Migrations: db/migrations/*.sql
+- Tests: tests/test_m3_2_api.py, tests/test_m4_1_scheduler_quota.py
+
+## Current submit contract before M4.1 changes
+- Endpoint: POST /jobs
+- Headers: Idempotency-Key supported
+- No tenant header existed before M4.1.
+- Job creation path: services/api/main.py -> JobRepository.create_job(...)
+
+## Scheduler selection mechanism before M4.1 changes
+- Dispatch source: repo.list_dispatchable_jobs(limit=batch)
+- Transition: mark_job_running(job_id)
+- Completion path: mark_job_terminal(...), mark_job_for_retry(...)
+- Retry/backoff hooks: compute_next_retry_at + mark_job_for_retry
+- No per-tenant running quota existed before M4.1.
+
+## Evidence pack conventions discovered
+- Milestone evidence packs under docs/evidence/phase3/m3.x/
+- Each milestone uses runbook.md + commands.txt + outputs/NN-*.txt
+- Reflection log at docs/reflection.md links evidence artifacts.

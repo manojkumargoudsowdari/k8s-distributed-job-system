@@ -24,6 +24,7 @@ class JobRepository:
     def create_job(
         self,
         *,
+        tenant_id: str,
         image: str,
         command: list[str] | None = None,
         args: list[str] | None = None,
@@ -45,11 +46,11 @@ class JobRepository:
 
         query = """
         INSERT INTO jobs (
-            id, idempotency_key, queue, image, command, args, env, resources,
+            id, tenant_id, idempotency_key, queue, image, command, args, env, resources,
             priority, max_retries, backoff_seconds, timeout_seconds, status, created_at, queued_at, next_retry_at, updated_at
         )
         VALUES (
-            %(id)s, %(idempotency_key)s, %(queue)s, %(image)s, %(command)s, %(args)s,
+            %(id)s, %(tenant_id)s, %(idempotency_key)s, %(queue)s, %(image)s, %(command)s, %(args)s,
             %(env)s, %(resources)s, %(priority)s, %(max_retries)s,
             %(backoff_seconds)s, %(timeout_seconds)s,
             'QUEUED', %(created_at)s, %(queued_at)s, %(next_retry_at)s, %(updated_at)s
@@ -58,6 +59,7 @@ class JobRepository:
         """
         params = {
             "id": job_id,
+            "tenant_id": tenant_id,
             "idempotency_key": idempotency_key,
             "queue": queue,
             "image": image,
@@ -130,6 +132,13 @@ class JobRepository:
             cur.execute(query, {"now": now, "limit": limit})
             rows = cur.fetchall()
         return [_row_to_job(row) for row in rows]
+
+    def count_running_jobs_by_tenant(self, tenant_id: str) -> int:
+        query = "SELECT COUNT(*) AS count FROM jobs WHERE status = 'RUNNING' AND tenant_id = %(tenant_id)s"
+        with self.pool.connection() as conn, conn.cursor() as cur:
+            cur.execute(query, {"tenant_id": tenant_id})
+            row = cur.fetchone()
+        return int(row["count"])
 
     def get_status_counts(self) -> dict[str, int]:
         query = """
@@ -259,6 +268,7 @@ class JobRepository:
 def _row_to_job(row: dict[str, Any]) -> Job:
     return Job(
         id=row["id"],
+        tenant_id=row["tenant_id"],
         idempotency_key=row.get("idempotency_key"),
         queue=row["queue"],
         image=row["image"],

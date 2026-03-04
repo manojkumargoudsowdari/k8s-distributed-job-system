@@ -87,6 +87,7 @@ class Scheduler:
         self.dispatch_batch_size = int(os.getenv("SCHEDULER_DISPATCH_BATCH_SIZE", "5"))
         self.running_scan_limit = int(os.getenv("SCHEDULER_RUNNING_SCAN_LIMIT", "50"))
         self.metrics_port = int(os.getenv("SCHEDULER_METRICS_PORT", "9000"))
+        self.tenant_max_running = int(os.getenv("TENANT_MAX_RUNNING", "2"))
 
         self.repo = JobRepository(dsn)
         self.batch_api = self._load_batch_api()
@@ -119,7 +120,23 @@ class Scheduler:
 
     def _dispatch_queued_jobs(self) -> None:
         queued_jobs = self.repo.list_dispatchable_jobs(limit=self.dispatch_batch_size)
+        running_by_tenant: dict[str, int] = {}
         for job in queued_jobs:
+            running_count = running_by_tenant.get(job.tenant_id)
+            if running_count is None:
+                running_count = self.repo.count_running_jobs_by_tenant(job.tenant_id)
+                running_by_tenant[job.tenant_id] = running_count
+
+            if running_count >= self.tenant_max_running:
+                LOGGER.info(
+                    "dispatch_skipped_tenant_quota tenant_id=%s running=%s limit=%s job_id=%s",
+                    job.tenant_id,
+                    running_count,
+                    self.tenant_max_running,
+                    job.id,
+                )
+                continue
+
             next_attempt = job.attempts + 1
             created = self._ensure_k8s_job_exists(job, next_attempt)
             if not created:
@@ -128,8 +145,10 @@ class Scheduler:
             if not marked:
                 LOGGER.info("dispatch_skip_state_changed job_id=%s", job.id)
                 continue
+            running_by_tenant[job.tenant_id] = running_count + 1
             LOGGER.info(
-                "job_running job_id=%s attempt=%s",
+                "job_running tenant_id=%s job_id=%s attempt=%s",
+                marked.tenant_id,
                 marked.id,
                 marked.attempts,
             )

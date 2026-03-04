@@ -1,0 +1,6 @@
+# 04 Scheduler Tenant Quota
+SUBMIT1 201 {'job_id': '254ecf8e-42d9-4161-8b2c-50a475c7fa28', 'status': 'QUEUED'}
+SUBMIT2 201 {'job_id': 'cc21dcd2-71bb-4124-bab4-d8ead6c2a87b', 'status': 'QUEUED'}
+STATUS_COUNTS [{'status': 'QUEUED', 'count': 1}, {'status': 'RUNNING', 'count': 1}]
+RUNNING_COUNT 1
+JOB_ROWS [{'id': UUID('254ecf8e-42d9-4161-8b2c-50a475c7fa28'), 'tenant_id': 'tenant_quota', 'status': 'RUNNING', 'attempts': 1}, {'id': UUID('cc21dcd2-71bb-4124-bab4-d8ead6c2a87b'), 'tenant_id': 'tenant_quota', 'status': 'QUEUED', 'attempts': 0}]

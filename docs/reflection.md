@@ -833,3 +833,54 @@ M0 evidence:
 - `docs/evidence/m0/outputs/01-repo-structure.txt`
 - `docs/evidence/m0/outputs/02-ci-or-tests.txt`
 - `docs/evidence/m0/outputs/03-evidence-scripts.txt`
+
+## 19) Phase 4 M4.1 - Tenant Identity + Per-Tenant Concurrency Quotas
+
+What changed:
+
+- Added migration for tenant identity:
+  - `db/migrations/003_m4_1_tenant_identity.sql`
+  - adds `jobs.tenant_id` (`NOT NULL`, backfilled with `tenant_default` for existing rows)
+  - adds tenant-aware indexes (`idx_jobs_tenant_status`, `idx_jobs_tenant_status_created`)
+- Updated domain model:
+  - `pkg/job_system/models.py` adds `tenant_id` on `Job`
+- Updated repository/persistence layer:
+  - `pkg/job_system/db.py`
+    - `create_job(..., tenant_id=...)` persists tenant on submit
+    - `count_running_jobs_by_tenant(tenant_id)` for scheduler quota checks
+- Updated API submit contract:
+  - `services/api/main.py`
+    - requires `X-Tenant-Id`
+    - validation: non-empty, `<= 64`, pattern `^[A-Za-z0-9_-]{1,64}$`
+    - deterministic 400 for missing/invalid tenant header
+    - idempotency key conflict if same key is reused across different tenants
+- Updated scheduler dispatch gate:
+  - `services/scheduler/main.py`
+    - new env-driven quota: `TENANT_MAX_RUNNING` (default `2`)
+    - skips dispatch when tenant running count is at limit
+- Updated scheduler manifest defaults:
+  - `k8s/job-system/scheduler-deployment.yaml` adds `TENANT_MAX_RUNNING`
+- Added tests:
+  - `tests/test_m3_2_api.py`
+    - missing tenant header fails
+    - tenant_id persists on successful submit
+  - `tests/test_m4_1_scheduler_quota.py`
+    - verifies only one running job for same tenant when limit is 1
+
+What was proven:
+
+- Migration can be applied and schema/indexes prove tenant_id storage/query support.
+- API rejects missing tenant header and accepts valid tenant header.
+- Tenant identity is persisted and visible on readback.
+- Scheduler quota gate prevents overscheduling for a single tenant.
+- Lint and unit tests pass with new M4.1 behavior.
+
+Evidence:
+
+- `docs/evidence/phase4/m4.1/outputs/01-repo-structure.txt`
+- `docs/evidence/phase4/m4.1/outputs/02-db-migration-status.txt`
+- `docs/evidence/phase4/m4.1/outputs/03-api-tenant-validation.txt`
+- `docs/evidence/phase4/m4.1/outputs/04-scheduler-tenant-quota.txt`
+- `docs/evidence/phase4/m4.1/outputs/05-tests.txt`
+- `docs/evidence/phase4/m4.1/runbook.md`
+- `docs/evidence/phase4/m4.1/commands.txt`

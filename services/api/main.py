@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import logging
+import re
 from dataclasses import asdict
 from functools import lru_cache
 from typing import Any
@@ -17,6 +18,7 @@ from pkg.job_system import Job, JobRepository, render_metrics
 app = FastAPI(title="distributed-job-system-api")
 # Reuse uvicorn logger pipeline so app logs appear in pod logs.
 LOGGER = logging.getLogger("uvicorn.error")
+TENANT_ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 
 
 class JobSpec(BaseModel):
@@ -41,6 +43,7 @@ class JobSubmitResponse(BaseModel):
 
 class JobResponse(BaseModel):
     id: UUID
+    tenant_id: str
     idempotency_key: str | None
     queue: str
     image: str
@@ -84,9 +87,10 @@ def _job_to_response(job: Job) -> JobResponse:
     return JobResponse(**raw)
 
 
-def _job_spec_fingerprint(spec: JobSpec) -> dict[str, Any]:
+def _job_spec_fingerprint(spec: JobSpec, tenant_id: str) -> dict[str, Any]:
     # Keep a stable subset for idempotency comparisons.
     return {
+        "tenant_id": tenant_id,
         "image": spec.image,
         "command": spec.command,
         "args": spec.args,
@@ -102,6 +106,7 @@ def _job_spec_fingerprint(spec: JobSpec) -> dict[str, Any]:
 
 def _job_fingerprint(job: Job) -> dict[str, Any]:
     return {
+        "tenant_id": job.tenant_id,
         "image": job.image,
         "command": job.command,
         "args": job.args,
@@ -150,13 +155,30 @@ def metrics(repo: JobRepository = Depends(get_repository)) -> Response:
 )
 def submit_job(
     spec: JobSpec,
+    tenant_id: str | None = Header(default=None, alias="X-Tenant-Id"),
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
     repo: JobRepository = Depends(get_repository),
 ) -> JobSubmitResponse:
+    if not tenant_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="X-Tenant-Id header is required",
+        )
+    if not TENANT_ID_PATTERN.fullmatch(tenant_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="X-Tenant-Id must match ^[A-Za-z0-9_-]{1,64}$",
+        )
+
     if idempotency_key:
         existing = repo.get_job_by_idempotency_key(idempotency_key)
         if existing:
-            if _job_fingerprint(existing) != _job_spec_fingerprint(spec):
+            if existing.tenant_id != tenant_id:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Idempotency-Key conflict: key already used by a different tenant",
+                )
+            if _job_fingerprint(existing) != _job_spec_fingerprint(spec, tenant_id):
                 LOGGER.warning(
                     "idempotency_conflict idempotency_key=%s", idempotency_key
                 )
@@ -172,6 +194,7 @@ def submit_job(
             return JobSubmitResponse(job_id=existing.id, status=existing.status)
 
     created = repo.create_job(
+        tenant_id=tenant_id,
         image=spec.image,
         command=spec.command,
         args=spec.args,
@@ -184,7 +207,9 @@ def submit_job(
         timeout_seconds=spec.timeout_seconds,
         idempotency_key=idempotency_key,
     )
-    if idempotency_key and _job_fingerprint(created) != _job_spec_fingerprint(spec):
+    if idempotency_key and _job_fingerprint(created) != _job_spec_fingerprint(
+        spec, tenant_id
+    ):
         LOGGER.warning(
             "idempotency_conflict_post_create job_id=%s idempotency_key=%s",
             created.id,

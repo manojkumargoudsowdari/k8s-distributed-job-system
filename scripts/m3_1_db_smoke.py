@@ -16,6 +16,7 @@ def main() -> None:
     repo = JobRepository(dsn)
     try:
         created = repo.create_job(
+            tenant_id="tenant-smoke",
             image="python:3.12-slim",
             command=["python", "-c"],
             args=["print('hello')"],

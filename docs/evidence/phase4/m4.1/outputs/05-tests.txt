@@ -1,0 +1,12 @@
+# 05 Tests
+
+## ruff check
+All checks passed!
+
+## unit tests
+.idempotency_conflict idempotency_key=same-key
+......
+----------------------------------------------------------------------
+Ran 7 tests in 0.041s
+
+OK
