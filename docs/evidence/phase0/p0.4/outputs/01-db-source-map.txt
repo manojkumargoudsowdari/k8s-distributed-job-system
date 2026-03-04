@@ -1,0 +1,52 @@
+DB source map (authoritative inputs)
+
+Schema source of truth:
+- db/migrations/001_create_jobs.sql
+- db/migrations/002_m3_4_reliability.sql
+- db/migrations/003_m4_1_tenant_identity.sql
+
+Repository DB access layer:
+- pkg/job_system/db.py
+
+Scheduler usage of repository methods:
+- services/scheduler/main.py
+
+API usage of repository methods:
+- services/api/main.py
+
+Database engine used:
+- PostgreSQL (psycopg/ConnectionPool in pkg/job_system/db.py, Postgres service in k8s/job-system/postgres.yaml, psql migration commands in README).
+
+Tables discovered:
+- jobs
+- job_attempts
+
+Migrations location and workflow:
+- SQL files in db/migrations/
+- Applied via psql commands (kubectl exec/cp pattern in README and evidence runbooks).
+
+Critical scheduler/API query patterns (file + function references):
+- Select dispatchable queued jobs:
+  - pkg/job_system/db.py::list_dispatchable_jobs
+  - services/scheduler/main.py::_dispatch_queued_jobs
+- Select single job by id:
+  - pkg/job_system/db.py::get_job
+  - services/api/main.py::get_job / cancel_job
+- List jobs by status + limit:
+  - pkg/job_system/db.py::list_jobs
+  - services/api/main.py::list_jobs
+  - services/scheduler/main.py::_reconcile_running_jobs (status='RUNNING')
+- Count running jobs by tenant:
+  - pkg/job_system/db.py::count_running_jobs_by_tenant
+  - services/scheduler/main.py::_dispatch_queued_jobs
+- Transition queued -> running with guard:
+  - pkg/job_system/db.py::mark_job_running (WHERE status='QUEUED')
+- Transition running -> queued retry with guard/backoff fields:
+  - pkg/job_system/db.py::mark_job_for_retry (WHERE status='RUNNING')
+  - services/scheduler/main.py::_reconcile_running_jobs
+- Transition running -> terminal with guard:
+  - pkg/job_system/db.py::mark_job_terminal (WHERE status='RUNNING')
+  - services/scheduler/main.py::_reconcile_running_jobs / _handle_timeout
+- Idempotency lookup:
+  - pkg/job_system/db.py::get_job_by_idempotency_key
+  - services/api/main.py::submit_job

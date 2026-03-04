@@ -1,0 +1,51 @@
+Index-to-query proof pointers
+
+Repository query/transition functions:
+94:    def get_job(self, job_id: UUID) -> Job | None:
+101:    def get_job_by_idempotency_key(self, idempotency_key: str) -> Job | None:
+108:    def list_jobs(self, status: str | None = None, limit: int = 50) -> list[Job]:
+121:    def list_dispatchable_jobs(self, limit: int = 5) -> list[Job]:
+136:    def count_running_jobs_by_tenant(self, tenant_id: str) -> int:
+174:    def mark_job_running(self, job_id: UUID) -> Job | None:
+192:    def mark_job_for_retry(
+221:    def mark_job_terminal(
+
+Scheduler usage pointers:
+122:        queued_jobs = self.repo.list_dispatchable_jobs(limit=self.dispatch_batch_size)
+127:                running_count = self.repo.count_running_jobs_by_tenant(job.tenant_id)
+144:            marked = self.repo.mark_job_running(job.id)
+189:        running_jobs = self.repo.list_jobs(
+198:                terminal = self.repo.mark_job_terminal(
+212:                terminal = self.repo.mark_job_terminal(job.id, "SUCCEEDED")
+225:                    self.repo.mark_job_for_retry(
+239:                    terminal = self.repo.mark_job_terminal(
+291:        terminal = self.repo.mark_job_terminal(job.id, "FAILED", error="timeout")
+
+API usage pointers:
+174:        existing = repo.get_job_by_idempotency_key(idempotency_key)
+227:def get_job(job_id: UUID, repo: JobRepository = Depends(get_repository)) -> JobResponse:
+228:    job = repo.get_job(job_id)
+241:def list_jobs(
+246:    jobs = repo.list_jobs(status=status_filter, limit=limit)
+257:    job = repo.get_job(job_id)
+
+Index definitions from migrations:
+db/migrations/002_m3_4_reliability.sql:11:CREATE INDEX IF NOT EXISTS idx_jobs_dispatch_ready
+db/migrations/001_create_jobs.sql:5:    id UUID PRIMARY KEY,
+db/migrations/001_create_jobs.sql:6:    idempotency_key TEXT UNIQUE,
+db/migrations/001_create_jobs.sql:29:    id BIGSERIAL PRIMARY KEY,
+db/migrations/001_create_jobs.sql:37:    UNIQUE (job_id, attempt_number)
+db/migrations/001_create_jobs.sql:40:CREATE INDEX IF NOT EXISTS idx_jobs_status_created_at ON jobs(status, created_at DESC);
+db/migrations/001_create_jobs.sql:41:CREATE INDEX IF NOT EXISTS idx_jobs_queue_status ON jobs(queue, status);
+db/migrations/001_create_jobs.sql:42:CREATE INDEX IF NOT EXISTS idx_jobs_updated_at ON jobs(updated_at DESC);
+db/migrations/001_create_jobs.sql:43:CREATE INDEX IF NOT EXISTS idx_job_attempts_job_id ON job_attempts(job_id);
+db/migrations/003_m4_1_tenant_identity.sql:14:CREATE INDEX IF NOT EXISTS idx_jobs_tenant_status
+db/migrations/003_m4_1_tenant_identity.sql:17:CREATE INDEX IF NOT EXISTS idx_jobs_tenant_status_created
+
+Mapping summary:
+- Dispatch-ready query -> idx_jobs_dispatch_ready (status, next_retry_at)
+- Job by id -> PRIMARY KEY jobs(id)
+- List by status/limit -> idx_jobs_status_created_at (status, created_at DESC)
+- Count running by tenant -> idx_jobs_tenant_status (tenant_id, status)
+- Tenant scoped status ordering -> idx_jobs_tenant_status_created (tenant_id, status, created_at)
+- Idempotency lookup -> UNIQUE(idempotency_key)
