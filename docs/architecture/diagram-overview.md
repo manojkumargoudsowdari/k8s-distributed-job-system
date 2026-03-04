@@ -1,0 +1,51 @@
+# Architecture Diagram
+
+## System Topology
+
+```mermaid
+flowchart TD
+    U[Client / CLI / Service Caller]
+    API[FastAPI API Service]
+    DB[(Postgres jobs DB)]
+    SCH[Scheduler Reconciler]
+    K8S[Kubernetes API Server]
+    JOB[Kubernetes Job]
+    POD[Worker Pod]
+    METRICS[Prometheus Scrape]
+    LOGS[Pod Logs]
+
+    U -->|POST /jobs| API
+    U -->|GET /jobs/{id}| API
+    API -->|create/read/update job state| DB
+    SCH -->|poll dispatchable jobs| DB
+    SCH -->|create/list/delete Jobs| K8S
+    K8S --> JOB --> POD
+    K8S -->|Job status| SCH
+    SCH -->|terminal/retry updates| DB
+
+    METRICS -->|/metrics| API
+    METRICS -->|:9000/metrics| SCH
+    LOGS --> API
+    LOGS --> SCH
+```
+
+## Execution Sequence (Submit to Terminal)
+1. Client submits job to API with `X-Tenant-Id` (and optional `Idempotency-Key`).
+2. API validates input and persists `QUEUED` job row in Postgres.
+3. Scheduler polls DB for dispatchable `QUEUED` jobs and applies tenant concurrency guard.
+4. Scheduler creates Kubernetes `Job`, marks DB row `RUNNING`.
+5. Scheduler reconciles Kubernetes completion/failure, then writes terminal state (`SUCCEEDED` / `FAILED`) or retry requeue.
+6. API reads lifecycle state from DB for `GET /jobs` and `GET /jobs/{id}`.
+
+## Ownership Legend
+- API owns: request contract, validation, idempotent submit behavior.
+- Scheduler owns: dispatch, retry/backoff, timeout handling, terminal reconciliation.
+- Postgres owns: authoritative lifecycle state.
+- Kubernetes owns: workload execution runtime.
+
+## Notes
+- This diagram is intentionally high-level and aligned to current implementation, not future target architecture.
+- For detailed boundaries and lifecycle rules, see:
+  - [system-overview.md](/mnt/d/Work/Code/Kubernetes/k8s-distributed-job-system/docs/architecture/system-overview.md)
+  - [component-boundaries.md](/mnt/d/Work/Code/Kubernetes/k8s-distributed-job-system/docs/architecture/component-boundaries.md)
+  - [job-lifecycle.md](/mnt/d/Work/Code/Kubernetes/k8s-distributed-job-system/docs/contracts/job-lifecycle.md)

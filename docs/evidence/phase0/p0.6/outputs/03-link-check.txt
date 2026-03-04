@@ -1,0 +1,6 @@
+Command: rg -n "diagram-overview|Architecture docs" README.md
+19:- Architecture docs:
+21:  - `docs/architecture/diagram-overview.md`
+
+Command: bash scripts/evidence_check.sh phase0 p0.6
+Evidence check OK for phase0/p0.6.

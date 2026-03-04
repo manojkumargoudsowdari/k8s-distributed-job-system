@@ -1016,3 +1016,27 @@ Evidence:
 - `docs/evidence/phase0/p0.5/outputs/03-observability-proof-pointers.txt`
 - `docs/evidence/phase0/p0.5/outputs/04-failure-mode-proof-pointers.txt`
 - `docs/evidence/phase0/p0.5/outputs/05-evidence-check.txt`
+
+## 25) Phase 0 P0.6 - Architecture Diagram Artifact
+
+What changed:
+
+- Added dedicated architecture diagram doc:
+  - `docs/architecture/diagram-overview.md`
+- Updated README architecture links:
+  - added `docs/architecture/diagram-overview.md`
+
+What was proven:
+
+- Existing architecture/lifecycle/contract docs were mapped before writing the new diagram artifact.
+- A reviewer-friendly, standalone topology + execution-sequence diagram now exists.
+- README navigation exposes the diagram directly for quick portfolio review.
+- Evidence pack passes `scripts/evidence_check.sh phase0 p0.6`.
+
+Evidence:
+
+- `docs/evidence/phase0/p0.6/runbook.md`
+- `docs/evidence/phase0/p0.6/outputs/01-source-map.txt`
+- `docs/evidence/phase0/p0.6/outputs/02-diagram-doc.txt`
+- `docs/evidence/phase0/p0.6/outputs/03-link-check.txt`
+- `docs/evidence/phase0/p0.6/outputs/04-evidence-check.txt`

@@ -1,0 +1,21 @@
+P0.6 source map (inspection before edits)
+
+Inspected files:
+- docs/architecture/system-overview.md
+- docs/architecture/component-boundaries.md
+- docs/contracts/job-lifecycle.md
+- docs/contracts/api.md
+- docs/contracts/db-schema.md
+- docs/operations/local-dev.md
+- README.md
+
+Reason for milestone:
+- Add a dedicated architecture diagram artifact that can be linked directly for recruiter/reviewer scanning.
+
+Current diagram sources discovered:
+- Mermaid flow in docs/architecture/system-overview.md under "Components Diagram".
+
+Planned P0.6 additions:
+- docs/architecture/diagram-overview.md
+- README link under architecture docs
+- reflection update and evidence pack
