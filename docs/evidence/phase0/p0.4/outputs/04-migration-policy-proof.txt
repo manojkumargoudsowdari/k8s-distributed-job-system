@@ -1,0 +1,32 @@
+Migration workflow proof pointers
+
+Migration files present:
+001_create_jobs.sql
+002_m3_4_reliability.sql
+003_m4_1_tenant_identity.sql
+
+README migration application commands:
+116:### 3) Apply DB migrations
+120:kubectl cp db/migrations/001_create_jobs.sql default/$DB_POD:/tmp/001_create_jobs.sql
+121:kubectl cp db/migrations/002_m3_4_reliability.sql default/$DB_POD:/tmp/002_m3_4_reliability.sql
+122:kubectl exec $DB_POD -- psql -U jobs -d jobs -f /tmp/001_create_jobs.sql
+123:kubectl exec $DB_POD -- psql -U jobs -d jobs -f /tmp/002_m3_4_reliability.sql
+
+Evidence runbook references for migration usage:
+docs/evidence/phase3/m3.1/runbook.md:20:2. Apply migration `db/migrations/001_create_jobs.sql`
+docs/evidence/phase3/m3.1/runbook.md:29:- `01-psql-connection.txt`
+docs/evidence/phase3/m3.1/runbook.md:30:- `02-migration-applied.txt`
+docs/evidence/phase4/m4.1/commands.txt:17:# Local DB migration proof (Docker Postgres)
+docs/evidence/phase4/m4.1/commands.txt:20:docker cp db/migrations/001_create_jobs.sql m41-postgres:/tmp/001.sql
+docs/evidence/phase4/m4.1/commands.txt:21:docker cp db/migrations/002_m3_4_reliability.sql m41-postgres:/tmp/002.sql
+docs/evidence/phase4/m4.1/commands.txt:22:docker cp db/migrations/003_m4_1_tenant_identity.sql m41-postgres:/tmp/003.sql
+docs/evidence/phase4/m4.1/commands.txt:23:docker exec m41-postgres psql -U jobs -d jobs -f /tmp/001.sql
+docs/evidence/phase4/m4.1/commands.txt:24:docker exec m41-postgres psql -U jobs -d jobs -f /tmp/002.sql
+docs/evidence/phase4/m4.1/commands.txt:25:docker exec m41-postgres psql -U jobs -d jobs -f /tmp/003.sql
+docs/evidence/phase4/m4.1/commands.txt:26:docker exec m41-postgres psql -U jobs -d jobs -c "\d+ jobs"
+docs/evidence/phase4/m4.1/commands.txt:27:docker exec m41-postgres psql -U jobs -d jobs -c "SELECT indexname, indexdef FROM pg_indexes WHERE tablename='jobs' AND indexname LIKE 'idx_jobs_tenant%';"
+docs/evidence/phase3/m3.2/runbook.md:24:4. Apply `db/migrations/001_create_jobs.sql` inside the Postgres pod.
+
+Interpretation:
+- This repo uses plain SQL migrations under db/migrations/ (no external migration framework wiring in code).
+- Migrations are applied in ordered sequence using psql commands from operational runbooks/README.

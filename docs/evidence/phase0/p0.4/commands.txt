@@ -1,0 +1,40 @@
+# Commands for phase0/p0.4
+
+# Branch setup
+
+git rev-parse --abbrev-ref HEAD
+git status --short --branch
+
+# Initialize evidence skeleton
+
+bash scripts/evidence_init.sh phase0 p0.4
+
+# Inspect DB schema and migrations
+
+Get-ChildItem db/migrations | Select-Object Name
+Get-Content db/migrations/001_create_jobs.sql
+Get-Content db/migrations/002_m3_4_reliability.sql
+Get-Content db/migrations/003_m4_1_tenant_identity.sql
+
+# Inspect DB access/query patterns
+
+Get-Content pkg/job_system/db.py
+Get-Content services/scheduler/main.py
+Get-Content services/api/main.py
+rg -n "list_dispatchable_jobs|mark_job_running|mark_job_for_retry|mark_job_terminal|count_running_jobs_by_tenant|get_job\(|get_job_by_idempotency_key|list_jobs\(" services/scheduler/main.py pkg/job_system/db.py services/api/main.py
+
+# Inspect migration workflow references
+
+rg -n "Apply DB migrations|kubectl cp db/migrations|psql -U jobs -d jobs -f" README.md
+rg -n "migration|001_create_jobs.sql|002_m3_4_reliability.sql|003_m4_1_tenant_identity.sql|psql" docs/evidence/phase3/m3.1/runbook.md docs/evidence/phase3/m3.2/runbook.md docs/evidence/phase4/m4.1/commands.txt
+
+# Docs updates
+
+# Edited:
+# - docs/contracts/db-schema.md
+# - README.md
+# - docs/reflection.md
+
+# Evidence check
+
+bash scripts/evidence_check.sh phase0 p0.4

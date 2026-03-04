@@ -962,3 +962,29 @@ Evidence:
 - `docs/evidence/phase0/p0.3/outputs/02-api-contract.txt`
 - `docs/evidence/phase0/p0.3/outputs/03-error-model-proof.txt`
 - `docs/evidence/phase0/p0.3/outputs/04-evidence-check.txt`
+
+## 23) Phase 0 P0.4 - DB Schema Contract + Index/Migration Policy
+
+What changed:
+
+- Added DB schema contract:
+  - `docs/contracts/db-schema.md`
+- Added README contract navigation link:
+  - `docs/contracts/db-schema.md`
+
+What was proven:
+
+- Schema source of truth was mapped to migration files under `db/migrations/`.
+- `jobs` and `job_attempts` tables, constraints, and tenant fields were documented from code.
+- Critical scheduler/API query patterns were mapped to required indexes with query-to-index proof pointers.
+- Migration workflow was documented from repository runbook/README usage (`psql -f` against ordered SQL files).
+- Evidence pack passes `scripts/evidence_check.sh phase0 p0.4`.
+
+Evidence:
+
+- `docs/evidence/phase0/p0.4/runbook.md`
+- `docs/evidence/phase0/p0.4/outputs/01-db-source-map.txt`
+- `docs/evidence/phase0/p0.4/outputs/02-db-schema-contract.txt`
+- `docs/evidence/phase0/p0.4/outputs/03-index-to-query-mapping.txt`
+- `docs/evidence/phase0/p0.4/outputs/04-migration-policy-proof.txt`
+- `docs/evidence/phase0/p0.4/outputs/05-evidence-check.txt`

@@ -21,6 +21,7 @@ Distributed systems learning repo for Kubernetes scheduling, pressure behavior, 
   - `docs/architecture/component-boundaries.md`
   - `docs/contracts/job-lifecycle.md`
   - `docs/contracts/api.md`
+  - `docs/contracts/db-schema.md`
 
 ## Quickstart A: Model Serving (Phase 2)
 

@@ -1,0 +1,156 @@
+=== docs/contracts/db-schema.md ===
+# DB Schema Contract
+
+## Purpose and Scope
+This contract defines the persisted schema relied on by API and scheduler control-plane behavior, and formalizes index/migration rules needed to keep lifecycle transitions correct and performant.
+
+Persistence guarantees provided:
+- Postgres `jobs` table is authoritative lifecycle state.
+- State transitions are recorded through repository methods with guarded updates.
+- Schema evolution occurs via forward SQL migrations under `db/migrations/`.
+
+## Database Overview
+- Engine: PostgreSQL.
+- Driver/pool: `psycopg` + `psycopg_pool.ConnectionPool`.
+- Schema source of truth: raw SQL files in `db/migrations/`.
+- Migration application style in this repo: copy SQL files into DB pod/container and execute with `psql -f` in order.
+
+## Tables and Columns (Contract)
+
+## `jobs`
+Primary key:
+- `id UUID PRIMARY KEY`
+
+Identity and tenancy:
+- `tenant_id TEXT NOT NULL`
+- `idempotency_key TEXT UNIQUE`
+
+Execution spec:
+- `queue TEXT NOT NULL DEFAULT 'default'`
+- `image TEXT NOT NULL`
+- `command TEXT[] NOT NULL DEFAULT '{}'`
+- `args TEXT[] NOT NULL DEFAULT '{}'`
+- `env JSONB NOT NULL DEFAULT '{}'::jsonb`
+- `resources JSONB NOT NULL DEFAULT '{}'::jsonb`
+- `priority INTEGER NOT NULL DEFAULT 0`
+
+Reliability/lifecycle controls:
+- `max_retries INTEGER NOT NULL DEFAULT 0`
+- `backoff_seconds INTEGER NOT NULL DEFAULT 5`
+- `timeout_seconds INTEGER`
+- `status TEXT NOT NULL CHECK (status IN ('QUEUED', 'RUNNING', 'SUCCEEDED', 'FAILED', 'CANCELED'))`
+- `attempts INTEGER NOT NULL DEFAULT 0`
+- `desired_status TEXT`
+- `last_error TEXT`
+- `next_retry_at TIMESTAMPTZ`
+
+Timestamps:
+- `created_at TIMESTAMPTZ NOT NULL DEFAULT now()`
+- `queued_at TIMESTAMPTZ`
+- `started_at TIMESTAMPTZ`
+- `finished_at TIMESTAMPTZ`
+- `updated_at TIMESTAMPTZ NOT NULL DEFAULT now()`
+
+Status semantics are defined by [job-lifecycle.md](/mnt/d/Work/Code/Kubernetes/k8s-distributed-job-system/docs/contracts/job-lifecycle.md).
+
+## `job_attempts`
+Primary key:
+- `id BIGSERIAL PRIMARY KEY`
+
+Foreign key:
+- `job_id UUID NOT NULL REFERENCES jobs(id) ON DELETE CASCADE`
+
+Attempt fields:
+- `attempt_number INTEGER NOT NULL`
+- `status TEXT NOT NULL CHECK (status IN ('RUNNING', 'SUCCEEDED', 'FAILED', 'TIMED_OUT', 'CANCELED'))`
+- `started_at TIMESTAMPTZ NOT NULL DEFAULT now()`
+- `finished_at TIMESTAMPTZ`
+- `exit_code INTEGER`
+- `error_message TEXT`
+- `UNIQUE (job_id, attempt_number)`
+
+Note: current scheduler/API runtime paths primarily update `jobs`; `job_attempts` exists for attempt-history expansion.
+
+## Index Policy
+
+Query pattern -> why it exists -> required index -> expected complexity
+
+1. Dispatch queued jobs ready to run (`status='QUEUED'` and retry gate)
+- Why: scheduler polling path (`list_dispatchable_jobs`) must be fast and stable.
+- Required index: `idx_jobs_dispatch_ready (status, next_retry_at)`.
+- Complexity expectation: index range scan on queued subset with bounded sort work.
+
+2. Get one job by id (`id`)
+- Why: API `GET /jobs/{job_id}` and cancellation lookup.
+- Required index: primary key on `jobs(id)`.
+- Complexity expectation: O(log N) index lookup.
+
+3. List jobs by status + recent first
+- Why: API list with status filter and scheduler running scan.
+- Required indexes:
+  - `idx_jobs_status_created_at (status, created_at DESC)`
+  - `idx_jobs_updated_at (updated_at DESC)` for recency/ops queries.
+- Complexity expectation: index scan on filtered status with limit pushdown.
+
+4. Count running jobs by tenant (`status='RUNNING' AND tenant_id=...`)
+- Why: tenant concurrency quota enforcement.
+- Required index: `idx_jobs_tenant_status (tenant_id, status)`.
+- Complexity expectation: targeted index-only/count scan on tenant+status.
+
+5. Tenant + status + ordering workloads
+- Why: tenant-scoped list/selection evolution (Phase 4 hardening path).
+- Required index: `idx_jobs_tenant_status_created (tenant_id, status, created_at)`.
+- Complexity expectation: bounded ordered scan for one tenant and status.
+
+6. Idempotency-key lookup
+- Why: API idempotent submit and conflict detection.
+- Required index: implicit unique index from `idempotency_key TEXT UNIQUE`.
+- Complexity expectation: O(log N) unique lookup.
+
+## Migration Policy
+
+1. Forward migrations are required
+- Every schema change lands as a new SQL file in `db/migrations/`.
+- Existing migration files are immutable after merge.
+
+2. Rollback expectation
+- Production rollback is handled by forward corrective migration unless a milestone explicitly includes a tested reverse migration.
+- Any destructive rollback steps must be documented in the milestone runbook.
+
+3. Backfill and NOT NULL safety
+- For new required columns:
+  - Step 1: add nullable column.
+  - Step 2: backfill existing rows.
+  - Step 3: enforce `NOT NULL`.
+- `003_m4_1_tenant_identity.sql` follows this pattern.
+
+4. Index additions
+- Add indexes in dedicated migration statements (`CREATE INDEX IF NOT EXISTS ...`).
+- Ensure index definitions map to known query patterns before merge.
+
+5. Breaking changes
+- No breaking schema change without milestone-level callout and migration safety plan in docs/evidence and reflection.
+
+## Operational Notes
+
+Transaction boundaries:
+- Repository methods execute a SQL statement and commit per operation.
+- Write paths are small scoped transactions (insert/update plus commit).
+
+Concurrency and race handling:
+- Transition methods apply guard conditions in `WHERE status = ...` to prevent invalid state jumps under concurrent scheduler loops.
+- Scheduler treats guard-failed updates as no-op and continues reconciliation.
+- Idempotency insert path catches unique violation and resolves via key lookup.
+
+Locking model:
+- No explicit row-locking (`FOR UPDATE`) is used in current implementation.
+- Consistency relies on guarded updates + reconcile loop retries.
+
+## Links
+- Lifecycle contract: [job-lifecycle.md](/mnt/d/Work/Code/Kubernetes/k8s-distributed-job-system/docs/contracts/job-lifecycle.md)
+- API contract: [api.md](/mnt/d/Work/Code/Kubernetes/k8s-distributed-job-system/docs/contracts/api.md)
+- Phase 4 plan: [phase4.md](/mnt/d/Work/Code/Kubernetes/k8s-distributed-job-system/docs/plans/phase4.md)
+- P0.4 evidence pack: [docs/evidence/phase0/p0.4/](/mnt/d/Work/Code/Kubernetes/k8s-distributed-job-system/docs/evidence/phase0/p0.4)
+
+=== README db-schema link ===
+24:  - `docs/contracts/db-schema.md`
