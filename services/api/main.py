@@ -10,7 +10,16 @@ from functools import lru_cache
 from typing import Any
 from uuid import UUID
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Query, Response, status
+from fastapi import (
+    Depends,
+    FastAPI,
+    Header,
+    HTTPException,
+    Query,
+    Request,
+    Response,
+    status,
+)
 from pydantic import BaseModel, Field
 
 from pkg.job_system import Job, JobRepository, render_metrics
@@ -120,6 +129,22 @@ def _job_fingerprint(job: Job) -> dict[str, Any]:
     }
 
 
+def _validated_tenant_id(
+    tenant_id: str | None = Header(default=None, alias="X-Tenant-Id"),
+) -> str:
+    if not tenant_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="X-Tenant-Id header is required",
+        )
+    if not TENANT_ID_PATTERN.fullmatch(tenant_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="X-Tenant-Id must match ^[A-Za-z0-9_-]{1,64}$",
+        )
+    return tenant_id
+
+
 @lru_cache
 def _repository() -> JobRepository:
     dsn = os.getenv("DATABASE_URL")
@@ -154,22 +179,14 @@ def metrics(repo: JobRepository = Depends(get_repository)) -> Response:
     "/jobs", response_model=JobSubmitResponse, status_code=status.HTTP_201_CREATED
 )
 def submit_job(
+    request: Request,
     spec: JobSpec,
-    tenant_id: str | None = Header(default=None, alias="X-Tenant-Id"),
+    tenant_id: str = Depends(_validated_tenant_id),
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+    submitted_by: str | None = Header(default=None, alias="X-Submitted-By"),
+    request_id: str | None = Header(default=None, alias="X-Request-Id"),
     repo: JobRepository = Depends(get_repository),
 ) -> JobSubmitResponse:
-    if not tenant_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="X-Tenant-Id header is required",
-        )
-    if not TENANT_ID_PATTERN.fullmatch(tenant_id):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="X-Tenant-Id must match ^[A-Za-z0-9_-]{1,64}$",
-        )
-
     if idempotency_key:
         existing = repo.get_job_by_idempotency_key(idempotency_key)
         if existing:
@@ -206,6 +223,9 @@ def submit_job(
         backoff_seconds=spec.backoff_seconds,
         timeout_seconds=spec.timeout_seconds,
         idempotency_key=idempotency_key,
+        submitted_by=submitted_by,
+        request_id=request_id,
+        created_from_ip=request.client.host if request.client else None,
     )
     if idempotency_key and _job_fingerprint(created) != _job_spec_fingerprint(
         spec, tenant_id
@@ -224,10 +244,14 @@ def submit_job(
 
 
 @app.get("/jobs/{job_id}", response_model=JobResponse)
-def get_job(job_id: UUID, repo: JobRepository = Depends(get_repository)) -> JobResponse:
-    job = repo.get_job(job_id)
+def get_job(
+    job_id: UUID,
+    tenant_id: str = Depends(_validated_tenant_id),
+    repo: JobRepository = Depends(get_repository),
+) -> JobResponse:
+    job = repo.get_job_for_tenant(tenant_id, job_id)
     if not job:
-        LOGGER.warning("get_not_found job_id=%s", job_id)
+        LOGGER.warning("get_not_found tenant_id=%s job_id=%s", tenant_id, job_id)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Job not found"
         )
@@ -239,24 +263,31 @@ def get_job(job_id: UUID, repo: JobRepository = Depends(get_repository)) -> JobR
 
 @app.get("/jobs", response_model=list[JobResponse])
 def list_jobs(
+    tenant_id: str = Depends(_validated_tenant_id),
     status_filter: str | None = Query(default=None, alias="status"),
     limit: int = Query(default=50, ge=1, le=200),
     repo: JobRepository = Depends(get_repository),
 ) -> list[JobResponse]:
-    jobs = repo.list_jobs(status=status_filter, limit=limit)
+    jobs = repo.list_jobs_for_tenant(tenant_id, status=status_filter, limit=limit)
     LOGGER.info(
-        "list_jobs status=%s limit=%s count=%s", status_filter, limit, len(jobs)
+        "list_jobs tenant_id=%s status=%s limit=%s count=%s",
+        tenant_id,
+        status_filter,
+        limit,
+        len(jobs),
     )
     return [_job_to_response(job) for job in jobs]
 
 
 @app.post("/jobs/{job_id}/cancel", response_model=CancelResponse)
 def cancel_job(
-    job_id: UUID, repo: JobRepository = Depends(get_repository)
+    job_id: UUID,
+    tenant_id: str = Depends(_validated_tenant_id),
+    repo: JobRepository = Depends(get_repository),
 ) -> CancelResponse:
-    job = repo.get_job(job_id)
+    job = repo.get_job_for_tenant(tenant_id, job_id)
     if not job:
-        LOGGER.warning("cancel_not_found job_id=%s", job_id)
+        LOGGER.warning("cancel_not_found tenant_id=%s job_id=%s", tenant_id, job_id)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Job not found"
         )
@@ -266,7 +297,7 @@ def cancel_job(
             status_code=status.HTTP_409_CONFLICT,
             detail="Only QUEUED jobs can be canceled in M3.2",
         )
-    updated = repo.update_job_status(job_id, "CANCELED")
+    updated = repo.update_job_status_for_tenant(tenant_id, job_id, "CANCELED")
     if not updated:
         LOGGER.error("cancel_failed_update job_id=%s", job_id)
         raise HTTPException(

@@ -1,0 +1,6 @@
+tenant_a_status= 200
+tenant_a_count= 2
+tenant_a_tenants= ['tenant-a']
+tenant_b_status= 200
+tenant_b_count= 1
+tenant_b_tenants= ['tenant-b']

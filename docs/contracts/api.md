@@ -12,13 +12,21 @@ It provides:
 It does not provide:
 - Direct worker/container execution control by clients.
 - Direct Kubernetes Job CRUD as a public API.
-- Cross-tenant authorization enforcement on read paths (planned for Phase 4 M4.3).
+- Full authN/authZ system beyond tenant-header isolation.
 
 ## Global Rules
 
 ### Required Header
-- `X-Tenant-Id` is required for `POST /jobs`.
+- `X-Tenant-Id` is required for:
+  - `POST /jobs`
+  - `GET /jobs/{job_id}`
+  - `GET /jobs`
+  - `POST /jobs/{job_id}/cancel`
 - Validation rule: must match `^[A-Za-z0-9_-]{1,64}$`.
+
+Optional submit metadata headers:
+- `X-Submitted-By`
+- `X-Request-Id`
 
 ### Content Type
 - `POST /jobs` expects `Content-Type: application/json`.
@@ -41,9 +49,9 @@ It does not provide:
 | `GET` | `/healthz` | Liveness/readiness health probe | None | `200` |
 | `GET` | `/metrics` | Prometheus metrics | None | `200` |
 | `POST` | `/jobs` | Submit a new job | `X-Tenant-Id` required, `Idempotency-Key` optional | `201` |
-| `GET` | `/jobs/{job_id}` | Get one job by id | None (current behavior) | `200` |
-| `GET` | `/jobs?status=&limit=` | List jobs with optional status filter and limit | None (current behavior) | `200` |
-| `POST` | `/jobs/{job_id}/cancel` | Cancel queued job | None (current behavior) | `200` |
+| `GET` | `/jobs/{job_id}` | Get one job by id | `X-Tenant-Id` required (tenant-scoped) | `200` |
+| `GET` | `/jobs?status=&limit=` | List jobs with optional status filter and limit | `X-Tenant-Id` required (tenant-scoped) | `200` |
+| `POST` | `/jobs/{job_id}/cancel` | Cancel queued job | `X-Tenant-Id` required (tenant-scoped) | `200` |
 
 ## Detailed Endpoint Specs
 
@@ -70,6 +78,8 @@ Example request:
 curl -s -X POST http://127.0.0.1:18080/jobs \
   -H "Content-Type: application/json" \
   -H "X-Tenant-Id: team_alpha" \
+  -H "X-Submitted-By: alice" \
+  -H "X-Request-Id: req-001" \
   -H "Idempotency-Key: submit-001" \
   -d '{
     "image":"busybox:1.36",
@@ -103,10 +113,12 @@ Failure examples:
 ### GET `/jobs/{job_id}`
 Example request:
 ```bash
-curl -s http://127.0.0.1:18080/jobs/<job_id>
+curl -s http://127.0.0.1:18080/jobs/<job_id> \
+  -H "X-Tenant-Id: team_alpha"
 ```
 Success response (`200`) fields include:
 - `id`, `tenant_id`, `status`, `attempts`
+- audit fields (`submitted_by`, `request_id`, `created_from_ip`)
 - spec fields (`image`, `command`, `args`, `env`, `resources`, `queue`, `priority`)
 - retry/runtime fields (`max_retries`, `backoff_seconds`, `timeout_seconds`, `last_error`, `next_retry_at`)
 - timestamps (`created_at`, `queued_at`, `started_at`, `finished_at`, `updated_at`)
@@ -119,7 +131,8 @@ Not found (`404`):
 ### GET `/jobs?status=&limit=`
 Example request:
 ```bash
-curl -s "http://127.0.0.1:18080/jobs?status=QUEUED&limit=10"
+curl -s "http://127.0.0.1:18080/jobs?status=QUEUED&limit=10" \
+  -H "X-Tenant-Id: team_alpha"
 ```
 Success response (`200`): JSON array of `JobResponse` objects.
 
@@ -131,7 +144,8 @@ Validation failure (`422`) example (limit outside range):
 ### POST `/jobs/{job_id}/cancel`
 Example request:
 ```bash
-curl -s -X POST http://127.0.0.1:18080/jobs/<job_id>/cancel
+curl -s -X POST http://127.0.0.1:18080/jobs/<job_id>/cancel \
+  -H "X-Tenant-Id: team_alpha"
 ```
 Success response (`200`):
 ```json
@@ -157,15 +171,16 @@ Current canonical error envelope (FastAPI default):
   - `{"detail":[...validation entries...]}` with HTTP `422`.
 
 Common failure mappings:
-- Missing `X-Tenant-Id` on submit -> `400`
+- Missing `X-Tenant-Id` on tenant-scoped endpoints -> `400`
 - Invalid `X-Tenant-Id` format -> `400`
 - Invalid request body/schema -> `422`
 - Job not found (`GET /jobs/{id}`, `POST /jobs/{id}/cancel`) -> `404`
 - Idempotency conflict -> `409`
-- Tenant-scoped read denied -> not implemented yet; planned in Phase 4 M4.3
+- Cross-tenant read/cancel denial -> `404` (resource hiding policy)
 
 ## Observability Hooks
 - API logs include correlation fields such as `job_id`, `status`, `attempts`, and idempotency conflict markers.
+- Submit path persists optional metadata (`submitted_by`, `request_id`) and client host (`created_from_ip`) when available.
 - Metrics endpoint (`/metrics`) exposes `job_system_*` metrics from shared metrics module.
 - No explicit request-id middleware is implemented in current API path.
 

@@ -1,0 +1,38 @@
+M4.3 inspection: API+DB tenant scope/audit map
+
+Branch setup capture:
+- git status --short --branch
+- git rev-parse --abbrev-ref HEAD
+
+API routes inspected (services/api/main.py):
+- GET /jobs/{job_id} -> get_job
+- GET /jobs -> list_jobs
+- POST /jobs/{job_id}/cancel -> cancel_job
+- POST /jobs -> submit_job
+
+Current tenant extraction behavior before M4.3:
+- submit_job required X-Tenant-Id with regex validation.
+- get/list/cancel had no tenant header requirement and used global get/list methods.
+
+DB access functions inspected (pkg/job_system/db.py):
+- get_job(job_id)
+- list_jobs(status, limit)
+- get_job_by_idempotency_key(idempotency_key)
+- update_job_status(job_id, status)
+
+Schema/migrations inspected:
+- db/migrations/001_create_jobs.sql
+- db/migrations/002_m3_4_reliability.sql
+- db/migrations/003_m4_1_tenant_identity.sql
+- jobs table includes tenant_id and idempotency_key unique.
+- no audit metadata columns existed before M4.3.
+
+Tests inspected:
+- tests/test_m3_2_api.py
+- tests/test_m4_1_scheduler_quota.py
+
+Implementation target selected for M4.3:
+- Enforce X-Tenant-Id on GET/list/cancel.
+- Return 404 for cross-tenant read/cancel to hide resource existence.
+- Add audit fields submitted_by/request_id/created_from_ip persisted on create.
+- Keep global idempotency uniqueness and deterministic cross-tenant conflict behavior unchanged.

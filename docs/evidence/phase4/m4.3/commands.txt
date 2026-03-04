@@ -1,0 +1,47 @@
+# Commands for phase4/m4.3
+
+# 0) Branch setup
+
+git status --short --branch
+git rev-parse --abbrev-ref HEAD
+
+# 1) Inspect before edits
+
+bash scripts/evidence_init.sh phase4 m4.3
+Get-Content services/api/main.py
+Get-Content pkg/job_system/db.py
+Get-ChildItem db/migrations | Select-Object Name
+Get-Content db/migrations/001_create_jobs.sql
+Get-Content tests/test_m3_2_api.py
+Get-Content tests/test_m4_1_scheduler_quota.py
+rg -n "X-Tenant-Id|/jobs/\{job_id\}|def get_job|def list_jobs|def cancel_job|get_job_by_idempotency_key|idempotency|tenant" services/api/main.py pkg/job_system/db.py tests/test_m3_2_api.py
+
+# 2) Implement M4.3
+
+# Modified:
+# - services/api/main.py
+# - pkg/job_system/db.py
+# - pkg/job_system/models.py
+# - db/migrations/004_m4_3_tenant_scope_audit.sql
+# - tests/test_m3_2_api.py
+# - docs/contracts/api.md
+# - docs/contracts/db-schema.md
+# - README.md
+# - docs/reflection.md
+
+# 3) Validate
+
+python -m unittest discover -s tests -p "test_*.py"
+python -m ruff check .
+
+# 4) Capture deterministic proofs
+
+# outputs/02-cross-tenant-read-denied.txt
+# outputs/03-tenant-list-filter.txt
+# outputs/04-cancel-tenant-scope.txt
+# outputs/05-db-audit-fields.txt
+# outputs/06-tests.txt
+
+# 5) Evidence check
+
+bash scripts/evidence_check.sh phase4 m4.3

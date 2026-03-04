@@ -1,0 +1,6 @@
+created_status= 201
+created_job_id= 873c0d11-1a18-4b4c-81d5-1fd4b6100549
+cross_tenant_get_status= 404
+cross_tenant_get_body= {'detail': 'Job not found'}
+owner_get_status= 200
+owner_get_tenant= tenant-a

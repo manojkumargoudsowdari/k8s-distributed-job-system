@@ -31,12 +31,18 @@ class FakeRepository:
         backoff_seconds: int = 5,
         timeout_seconds: int | None = None,
         idempotency_key: str | None = None,
+        submitted_by: str | None = None,
+        request_id: str | None = None,
+        created_from_ip: str | None = None,
     ) -> Job:
         now = datetime.now(timezone.utc)
         job = Job(
             id=uuid4(),
             tenant_id=tenant_id,
             idempotency_key=idempotency_key,
+            submitted_by=submitted_by,
+            request_id=request_id,
+            created_from_ip=created_from_ip,
             queue=queue,
             image=image,
             command=command or [],
@@ -66,6 +72,12 @@ class FakeRepository:
     def get_job(self, job_id: UUID) -> Job | None:
         return self.jobs.get(job_id)
 
+    def get_job_for_tenant(self, tenant_id: str, job_id: UUID) -> Job | None:
+        job = self.jobs.get(job_id)
+        if not job or job.tenant_id != tenant_id:
+            return None
+        return job
+
     def get_job_by_idempotency_key(self, idempotency_key: str) -> Job | None:
         job_id = self.by_idempotency.get(idempotency_key)
         if not job_id:
@@ -74,6 +86,14 @@ class FakeRepository:
 
     def list_jobs(self, status: str | None = None, limit: int = 50) -> list[Job]:
         values = list(self.jobs.values())
+        if status:
+            values = [job for job in values if job.status == status]
+        return values[:limit]
+
+    def list_jobs_for_tenant(
+        self, tenant_id: str, status: str | None = None, limit: int = 50
+    ) -> list[Job]:
+        values = [job for job in self.jobs.values() if job.tenant_id == tenant_id]
         if status:
             values = [job for job in values if job.status == status]
         return values[:limit]
@@ -87,6 +107,14 @@ class FakeRepository:
         job.updated_at = datetime.now(timezone.utc)
         self.jobs[job_id] = job
         return job
+
+    def update_job_status_for_tenant(
+        self, tenant_id: str, job_id: UUID, status: str, error: str | None = None
+    ) -> Job | None:
+        job = self.jobs.get(job_id)
+        if not job or job.tenant_id != tenant_id:
+            return None
+        return self.update_job_status(job_id, status, error)
 
 
 class JobApiTests(unittest.TestCase):
@@ -135,8 +163,13 @@ class JobApiTests(unittest.TestCase):
         queued = self.repo.create_job(image="busybox:1.36", tenant_id="tenant-a")
         running = self.repo.create_job(image="busybox:1.36", tenant_id="tenant-a")
         self.repo.update_job_status(running.id, "RUNNING")
+        self.repo.create_job(image="busybox:1.36", tenant_id="tenant-b")
 
-        response = self.client.get("/jobs", params={"status": "RUNNING"})
+        response = self.client.get(
+            "/jobs",
+            params={"status": "RUNNING"},
+            headers={"X-Tenant-Id": "tenant-a"},
+        )
         self.assertEqual(response.status_code, 200)
         jobs = response.json()
         self.assertEqual(len(jobs), 1)
@@ -160,6 +193,65 @@ class JobApiTests(unittest.TestCase):
         self.assertIsNotNone(job)
         assert job is not None
         self.assertEqual(job.tenant_id, "tenant-a")
+
+    def test_get_job_requires_tenant_header(self) -> None:
+        job = self.repo.create_job(image="busybox:1.36", tenant_id="tenant-a")
+        response = self.client.get(f"/jobs/{job.id}")
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["detail"], "X-Tenant-Id header is required")
+
+    def test_cross_tenant_get_returns_not_found(self) -> None:
+        job = self.repo.create_job(image="busybox:1.36", tenant_id="tenant-a")
+        response = self.client.get(
+            f"/jobs/{job.id}", headers={"X-Tenant-Id": "tenant-b"}
+        )
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json()["detail"], "Job not found")
+
+    def test_tenant_scoped_list(self) -> None:
+        job_a = self.repo.create_job(image="busybox:1.36", tenant_id="tenant-a")
+        self.repo.create_job(image="busybox:1.36", tenant_id="tenant-b")
+
+        response = self.client.get("/jobs", headers={"X-Tenant-Id": "tenant-a"})
+        self.assertEqual(response.status_code, 200)
+        jobs = response.json()
+        self.assertEqual(len(jobs), 1)
+        self.assertEqual(jobs[0]["id"], str(job_a.id))
+        self.assertEqual(jobs[0]["tenant_id"], "tenant-a")
+
+    def test_cross_tenant_cancel_denied_by_not_found(self) -> None:
+        job = self.repo.create_job(image="busybox:1.36", tenant_id="tenant-a")
+        response = self.client.post(
+            f"/jobs/{job.id}/cancel", headers={"X-Tenant-Id": "tenant-b"}
+        )
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json()["detail"], "Job not found")
+
+    def test_same_tenant_cancel_allowed(self) -> None:
+        job = self.repo.create_job(image="busybox:1.36", tenant_id="tenant-a")
+        response = self.client.post(
+            f"/jobs/{job.id}/cancel", headers={"X-Tenant-Id": "tenant-a"}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["status"], "CANCELED")
+
+    def test_submit_persists_audit_fields(self) -> None:
+        response = self.client.post(
+            "/jobs",
+            json={"image": "busybox:1.36"},
+            headers={
+                "X-Tenant-Id": "tenant-a",
+                "X-Submitted-By": "alice",
+                "X-Request-Id": "req-123",
+            },
+        )
+        self.assertEqual(response.status_code, 201)
+        job_id = UUID(response.json()["job_id"])
+        job = self.repo.get_job(job_id)
+        self.assertIsNotNone(job)
+        assert job is not None
+        self.assertEqual(job.submitted_by, "alice")
+        self.assertEqual(job.request_id, "req-123")
 
 
 if __name__ == "__main__":

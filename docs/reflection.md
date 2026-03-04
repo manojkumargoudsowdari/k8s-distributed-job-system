@@ -1076,3 +1076,47 @@ Evidence:
 - `docs/evidence/phase4/m4.2/outputs/04-quota-interaction-proof.txt`
 - `docs/evidence/phase4/m4.2/outputs/05-tests.txt`
 - `docs/evidence/phase4/m4.2/outputs/06-evidence-check.txt`
+
+## 27) Phase 4 M4.3 - Tenant-Scoped Reads + Audit Fields
+
+What changed:
+
+- Enforced tenant-scoped read/cancel behavior in API:
+  - `services/api/main.py`
+  - `GET /jobs/{job_id}`, `GET /jobs`, and `POST /jobs/{job_id}/cancel` now require `X-Tenant-Id`.
+  - Cross-tenant access returns `404 Job not found` (resource-hiding policy).
+- Added tenant-scoped repository methods:
+  - `pkg/job_system/db.py`
+  - Added `get_job_for_tenant`, `list_jobs_for_tenant`, and `update_job_status_for_tenant`.
+- Added audit metadata fields for job creation:
+  - `db/migrations/004_m4_3_tenant_scope_audit.sql`
+  - `pkg/job_system/models.py`
+  - `pkg/job_system/db.py`
+  - `services/api/main.py`
+  - Fields: `submitted_by`, `request_id`, `created_from_ip`.
+- Updated contract docs:
+  - `docs/contracts/api.md`
+  - `docs/contracts/db-schema.md`
+  - `README.md` migration steps include `004_m4_3_tenant_scope_audit.sql`.
+- Added/updated unit tests:
+  - `tests/test_m3_2_api.py`
+  - Cross-tenant read/cancel denied, tenant-scoped list behavior, audit persistence.
+
+What was proven:
+
+- Tenant isolation is enforced for read/list/cancel paths with deterministic `404` on cross-tenant access.
+- List endpoint returns only jobs for the requesting tenant.
+- Cancel endpoint blocks cross-tenant cancellation and allows same-tenant cancellation.
+- Audit fields are represented in model/repository, migration, and persisted create flow.
+- Lint, tests, and evidence check pass for M4.3.
+
+Evidence:
+
+- `docs/evidence/phase4/m4.3/runbook.md`
+- `docs/evidence/phase4/m4.3/outputs/01-api-db-scope-map.txt`
+- `docs/evidence/phase4/m4.3/outputs/02-cross-tenant-read-denied.txt`
+- `docs/evidence/phase4/m4.3/outputs/03-tenant-list-filter.txt`
+- `docs/evidence/phase4/m4.3/outputs/04-cancel-tenant-scope.txt`
+- `docs/evidence/phase4/m4.3/outputs/05-db-audit-fields.txt`
+- `docs/evidence/phase4/m4.3/outputs/06-tests.txt`
+- `docs/evidence/phase4/m4.3/outputs/07-evidence-check.txt`

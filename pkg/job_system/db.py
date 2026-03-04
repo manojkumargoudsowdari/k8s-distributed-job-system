@@ -36,6 +36,9 @@ class JobRepository:
         backoff_seconds: int = 5,
         timeout_seconds: int | None = None,
         idempotency_key: str | None = None,
+        submitted_by: str | None = None,
+        request_id: str | None = None,
+        created_from_ip: str | None = None,
     ) -> Job:
         job_id = uuid4()
         now = datetime.now(timezone.utc)
@@ -47,12 +50,15 @@ class JobRepository:
         query = """
         INSERT INTO jobs (
             id, tenant_id, idempotency_key, queue, image, command, args, env, resources,
-            priority, max_retries, backoff_seconds, timeout_seconds, status, created_at, queued_at, next_retry_at, updated_at
+            priority, max_retries, backoff_seconds, timeout_seconds,
+            submitted_by, request_id, created_from_ip,
+            status, created_at, queued_at, next_retry_at, updated_at
         )
         VALUES (
             %(id)s, %(tenant_id)s, %(idempotency_key)s, %(queue)s, %(image)s, %(command)s, %(args)s,
             %(env)s, %(resources)s, %(priority)s, %(max_retries)s,
             %(backoff_seconds)s, %(timeout_seconds)s,
+            %(submitted_by)s, %(request_id)s, %(created_from_ip)s,
             'QUEUED', %(created_at)s, %(queued_at)s, %(next_retry_at)s, %(updated_at)s
         )
         RETURNING *
@@ -71,6 +77,9 @@ class JobRepository:
             "max_retries": max_retries,
             "backoff_seconds": backoff_seconds,
             "timeout_seconds": timeout_seconds,
+            "submitted_by": submitted_by,
+            "request_id": request_id,
+            "created_from_ip": created_from_ip,
             "created_at": now,
             "queued_at": now,
             "next_retry_at": now,
@@ -98,6 +107,13 @@ class JobRepository:
             row = cur.fetchone()
         return _row_to_job(row) if row else None
 
+    def get_job_for_tenant(self, tenant_id: str, job_id: UUID) -> Job | None:
+        query = "SELECT * FROM jobs WHERE id = %(id)s AND tenant_id = %(tenant_id)s"
+        with self.pool.connection() as conn, conn.cursor() as cur:
+            cur.execute(query, {"id": job_id, "tenant_id": tenant_id})
+            row = cur.fetchone()
+        return _row_to_job(row) if row else None
+
     def get_job_by_idempotency_key(self, idempotency_key: str) -> Job | None:
         query = "SELECT * FROM jobs WHERE idempotency_key = %(idempotency_key)s"
         with self.pool.connection() as conn, conn.cursor() as cur:
@@ -112,6 +128,31 @@ class JobRepository:
         else:
             query = "SELECT * FROM jobs ORDER BY created_at DESC LIMIT %(limit)s"
             params = {"limit": limit}
+
+        with self.pool.connection() as conn, conn.cursor() as cur:
+            cur.execute(query, params)
+            rows = cur.fetchall()
+        return [_row_to_job(row) for row in rows]
+
+    def list_jobs_for_tenant(
+        self, tenant_id: str, status: str | None = None, limit: int = 50
+    ) -> list[Job]:
+        if status:
+            query = """
+            SELECT * FROM jobs
+            WHERE tenant_id = %(tenant_id)s AND status = %(status)s
+            ORDER BY created_at DESC
+            LIMIT %(limit)s
+            """
+            params = {"tenant_id": tenant_id, "status": status, "limit": limit}
+        else:
+            query = """
+            SELECT * FROM jobs
+            WHERE tenant_id = %(tenant_id)s
+            ORDER BY created_at DESC
+            LIMIT %(limit)s
+            """
+            params = {"tenant_id": tenant_id, "limit": limit}
 
         with self.pool.connection() as conn, conn.cursor() as cur:
             cur.execute(query, params)
@@ -264,12 +305,44 @@ class JobRepository:
             conn.commit()
         return _row_to_job(row) if row else None
 
+    def update_job_status_for_tenant(
+        self, tenant_id: str, job_id: UUID, status: str, error: str | None = None
+    ) -> Job | None:
+        now = datetime.now(timezone.utc)
+        query = """
+        UPDATE jobs
+        SET status = %(status)s,
+            last_error = %(error)s,
+            updated_at = %(updated_at)s,
+            started_at = CASE WHEN %(status)s = 'RUNNING' AND started_at IS NULL THEN %(updated_at)s ELSE started_at END,
+            finished_at = CASE WHEN %(status)s IN ('SUCCEEDED', 'FAILED', 'CANCELED') THEN %(updated_at)s ELSE finished_at END
+        WHERE id = %(id)s AND tenant_id = %(tenant_id)s
+        RETURNING *
+        """
+        with self.pool.connection() as conn, conn.cursor() as cur:
+            cur.execute(
+                query,
+                {
+                    "id": job_id,
+                    "tenant_id": tenant_id,
+                    "status": status,
+                    "error": error,
+                    "updated_at": now,
+                },
+            )
+            row = cur.fetchone()
+            conn.commit()
+        return _row_to_job(row) if row else None
+
 
 def _row_to_job(row: dict[str, Any]) -> Job:
     return Job(
         id=row["id"],
         tenant_id=row["tenant_id"],
         idempotency_key=row.get("idempotency_key"),
+        submitted_by=row.get("submitted_by"),
+        request_id=row.get("request_id"),
+        created_from_ip=row.get("created_from_ip"),
         queue=row["queue"],
         image=row["image"],
         command=row["command"],
