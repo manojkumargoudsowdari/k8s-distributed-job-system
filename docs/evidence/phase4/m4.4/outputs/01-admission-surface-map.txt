@@ -1,0 +1,36 @@
+M4.4 admission surface map
+
+API submit handler and tenant extraction:
+- services/api/main.py
+  - _validated_tenant_id (X-Tenant-Id validation)
+  - submit_job (POST /jobs)
+  - get_submit_limiter (env-driven rate limiter)
+  - _validate_submit_caps (hard caps)
+
+Current request model for submit:
+- services/api/main.py: class JobSpec
+  - image, command, args, env, resources, max_retries, backoff_seconds, timeout_seconds, queue, priority
+
+Idempotency path:
+- services/api/main.py: submit_job
+  - get_job_by_idempotency_key lookup
+  - 409 conflict handling remains unchanged
+
+Config/env system:
+- services/api/main.py uses os.getenv
+  - TENANT_SUBMIT_RPS (default 2)
+  - TENANT_SUBMIT_BURST (default 5)
+  - JOB_SUBMIT_MAX_PAYLOAD_BYTES (default 16384)
+  - JOB_SUBMIT_MAX_ENV_VARS (default 64)
+  - JOB_SUBMIT_MAX_ENV_KEY_LENGTH (default 128)
+  - JOB_SUBMIT_MAX_ENV_VALUE_LENGTH (default 2048)
+  - JOB_SUBMIT_MAX_RETRIES (default 10)
+  - JOB_SUBMIT_MAX_TIMEOUT_SECONDS (default 86400)
+
+Metrics endpoint:
+- services/api/main.py: GET /metrics -> render_metrics(repo)
+- pkg/job_system/metrics.py: Prometheus exposition
+
+Submit DB access layer:
+- pkg/job_system/db.py: JobRepository.create_job
+- idempotency lookup: JobRepository.get_job_by_idempotency_key

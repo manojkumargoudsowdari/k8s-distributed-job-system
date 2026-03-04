@@ -1,0 +1,10 @@
+payload_cap_status= 400
+payload_cap_body= {'detail': 'Job payload exceeds JOB_SUBMIT_MAX_PAYLOAD_BYTES (120)'}
+env_count_cap_status= 400
+env_count_cap_body= {'detail': 'env exceeds JOB_SUBMIT_MAX_ENV_VARS (1)'}
+env_key_cap_status= 400
+env_key_cap_body= {'detail': 'env key exceeds JOB_SUBMIT_MAX_ENV_KEY_LENGTH (3)'}
+retries_cap_status= 400
+retries_cap_body= {'detail': 'max_retries exceeds JOB_SUBMIT_MAX_RETRIES (2)'}
+timeout_cap_status= 400
+timeout_cap_body= {'detail': 'timeout_seconds exceeds JOB_SUBMIT_MAX_TIMEOUT_SECONDS (30)'}

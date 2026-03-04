@@ -5,6 +5,9 @@ from __future__ import annotations
 import os
 import logging
 import re
+import math
+import time
+from threading import Lock
 from dataclasses import asdict
 from functools import lru_cache
 from typing import Any
@@ -28,6 +31,14 @@ app = FastAPI(title="distributed-job-system-api")
 # Reuse uvicorn logger pipeline so app logs appear in pod logs.
 LOGGER = logging.getLogger("uvicorn.error")
 TENANT_ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+DEFAULT_TENANT_SUBMIT_RPS = 2.0
+DEFAULT_TENANT_SUBMIT_BURST = 5
+DEFAULT_MAX_PAYLOAD_BYTES = 16384
+DEFAULT_MAX_ENV_VARS = 64
+DEFAULT_MAX_ENV_KEY_LENGTH = 128
+DEFAULT_MAX_ENV_VALUE_LENGTH = 2048
+DEFAULT_MAX_RETRIES = 10
+DEFAULT_MAX_TIMEOUT_SECONDS = 86400
 
 
 class JobSpec(BaseModel):
@@ -79,6 +90,32 @@ class JobResponse(BaseModel):
 class CancelResponse(BaseModel):
     job_id: UUID
     status: str
+
+
+class TenantRateLimiter:
+    """In-memory token bucket keyed by tenant."""
+
+    def __init__(self, rps: float, burst: int) -> None:
+        self.rps = max(rps, 0.001)
+        self.burst = max(burst, 1)
+        self._lock = Lock()
+        self._state: dict[str, tuple[float, float]] = {}
+
+    def allow(self, tenant_id: str) -> tuple[bool, int]:
+        now = time.monotonic()
+        with self._lock:
+            tokens, last = self._state.get(tenant_id, (float(self.burst), now))
+            elapsed = max(0.0, now - last)
+            tokens = min(float(self.burst), tokens + elapsed * self.rps)
+            if tokens >= 1.0:
+                tokens -= 1.0
+                self._state[tenant_id] = (tokens, now)
+                return True, 0
+
+            needed = 1.0 - tokens
+            retry_after = max(1, int(math.ceil(needed / self.rps)))
+            self._state[tenant_id] = (tokens, now)
+            return False, retry_after
 
 
 def _job_to_response(job: Job) -> JobResponse:
@@ -157,11 +194,77 @@ def get_repository() -> JobRepository:
     return _repository()
 
 
+@lru_cache
+def get_submit_limiter() -> TenantRateLimiter:
+    rps = float(os.getenv("TENANT_SUBMIT_RPS", str(DEFAULT_TENANT_SUBMIT_RPS)))
+    burst = int(os.getenv("TENANT_SUBMIT_BURST", str(DEFAULT_TENANT_SUBMIT_BURST)))
+    return TenantRateLimiter(rps=rps, burst=burst)
+
+
+def _validate_submit_caps(spec: JobSpec) -> None:
+    payload_bytes = len(spec.model_dump_json().encode("utf-8"))
+    max_payload_bytes = int(
+        os.getenv("JOB_SUBMIT_MAX_PAYLOAD_BYTES", str(DEFAULT_MAX_PAYLOAD_BYTES))
+    )
+    if payload_bytes > max_payload_bytes:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Job payload exceeds JOB_SUBMIT_MAX_PAYLOAD_BYTES ({max_payload_bytes})",
+        )
+
+    max_env_vars = int(os.getenv("JOB_SUBMIT_MAX_ENV_VARS", str(DEFAULT_MAX_ENV_VARS)))
+    if len(spec.env) > max_env_vars:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"env exceeds JOB_SUBMIT_MAX_ENV_VARS ({max_env_vars})",
+        )
+
+    max_env_key_length = int(
+        os.getenv("JOB_SUBMIT_MAX_ENV_KEY_LENGTH", str(DEFAULT_MAX_ENV_KEY_LENGTH))
+    )
+    max_env_value_length = int(
+        os.getenv("JOB_SUBMIT_MAX_ENV_VALUE_LENGTH", str(DEFAULT_MAX_ENV_VALUE_LENGTH))
+    )
+    for key, value in spec.env.items():
+        if len(str(key)) > max_env_key_length:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"env key exceeds JOB_SUBMIT_MAX_ENV_KEY_LENGTH ({max_env_key_length})",
+            )
+        if len(str(value)) > max_env_value_length:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"env value exceeds JOB_SUBMIT_MAX_ENV_VALUE_LENGTH ({max_env_value_length})",
+            )
+
+    max_retries_cap = int(
+        os.getenv("JOB_SUBMIT_MAX_RETRIES", str(DEFAULT_MAX_RETRIES))
+    )
+    if spec.max_retries > max_retries_cap:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"max_retries exceeds JOB_SUBMIT_MAX_RETRIES ({max_retries_cap})",
+        )
+
+    max_timeout_seconds_cap = int(
+        os.getenv("JOB_SUBMIT_MAX_TIMEOUT_SECONDS", str(DEFAULT_MAX_TIMEOUT_SECONDS))
+    )
+    if (
+        spec.timeout_seconds is not None
+        and spec.timeout_seconds > max_timeout_seconds_cap
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"timeout_seconds exceeds JOB_SUBMIT_MAX_TIMEOUT_SECONDS ({max_timeout_seconds_cap})",
+        )
+
+
 @app.on_event("shutdown")
 def shutdown_event() -> None:
     if _repository.cache_info().currsize > 0:
         _repository().close()
         _repository.cache_clear()
+    get_submit_limiter.cache_clear()
 
 
 @app.get("/healthz")
@@ -182,11 +285,21 @@ def submit_job(
     request: Request,
     spec: JobSpec,
     tenant_id: str = Depends(_validated_tenant_id),
+    limiter: TenantRateLimiter = Depends(get_submit_limiter),
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
     submitted_by: str | None = Header(default=None, alias="X-Submitted-By"),
     request_id: str | None = Header(default=None, alias="X-Request-Id"),
     repo: JobRepository = Depends(get_repository),
 ) -> JobSubmitResponse:
+    _validate_submit_caps(spec)
+    allowed, retry_after = limiter.allow(tenant_id)
+    if not allowed:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Tenant submit rate limit exceeded; retry later",
+            headers={"Retry-After": str(retry_after)},
+        )
+
     if idempotency_key:
         existing = repo.get_job_by_idempotency_key(idempotency_key)
         if existing:

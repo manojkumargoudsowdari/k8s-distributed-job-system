@@ -1,0 +1,14 @@
+before_rows= 0
+first_submit_status= 201
+second_submit_status= 429
+after_rows= 1
+rows_created_for_tenant_a= 1
+retry_after_header= 1000
+other_tenant_submit_status= 201
+rows_after_other_tenant= 2
+test_tenant_quota_limits_dispatch_to_one_running (tests.test_m4_1_scheduler_quota.SchedulerTenantQuotaTests.test_tenant_quota_limits_dispatch_to_one_running) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+OK

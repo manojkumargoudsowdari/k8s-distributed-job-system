@@ -38,6 +38,22 @@ Optional submit metadata headers:
   - same key reused with different payload -> `409 Conflict`.
   - same key reused across different tenant -> `409 Conflict`.
 
+### Admission Control and Throttling (POST /jobs)
+- Per-tenant in-memory token bucket limiter:
+  - `TENANT_SUBMIT_RPS` (default `2`)
+  - `TENANT_SUBMIT_BURST` (default `5`)
+- Hard submit caps:
+  - `JOB_SUBMIT_MAX_PAYLOAD_BYTES` (default `16384`)
+  - `JOB_SUBMIT_MAX_ENV_VARS` (default `64`)
+  - `JOB_SUBMIT_MAX_ENV_KEY_LENGTH` (default `128`)
+  - `JOB_SUBMIT_MAX_ENV_VALUE_LENGTH` (default `2048`)
+  - `JOB_SUBMIT_MAX_RETRIES` (default `10`)
+  - `JOB_SUBMIT_MAX_TIMEOUT_SECONDS` (default `86400`)
+- Throttle response:
+  - `429 Too Many Requests`
+  - body: `{"detail":"Tenant submit rate limit exceeded; retry later"}`
+  - header: `Retry-After: <seconds>`
+
 ### Base URL (Local/Dev)
 - Typical local dev URL (with port-forward): `http://127.0.0.1:18080`
 - In-cluster service: `job-system-api.default.svc.cluster.local:80` -> container port `8000`.
@@ -109,6 +125,14 @@ Failure examples:
 ```json
 {"detail":"Idempotency-Key conflict: request body differs from existing job"}
 ```
+- Throttled (`429`):
+```json
+{"detail":"Tenant submit rate limit exceeded; retry later"}
+```
+- Admission cap violation (`400`):
+```json
+{"detail":"max_retries exceeds JOB_SUBMIT_MAX_RETRIES (10)"}
+```
 
 ### GET `/jobs/{job_id}`
 Example request:
@@ -176,6 +200,8 @@ Common failure mappings:
 - Invalid request body/schema -> `422`
 - Job not found (`GET /jobs/{id}`, `POST /jobs/{id}/cancel`) -> `404`
 - Idempotency conflict -> `409`
+- Submit throttled by per-tenant rate limit -> `429` (`Retry-After` header present)
+- Submit rejected by admission cap -> `400`
 - Cross-tenant read/cancel denial -> `404` (resource hiding policy)
 
 ## Observability Hooks

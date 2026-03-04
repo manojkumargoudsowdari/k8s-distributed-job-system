@@ -1,0 +1,6 @@
+tenant_a_first_status= 201
+tenant_a_second_status= 429
+tenant_a_second_body= {'detail': 'Tenant submit rate limit exceeded; retry later'}
+tenant_a_retry_after= 1
+tenant_b_first_status= 201
+jobs_persisted= 2
