@@ -1,0 +1,21 @@
+burst_statuses= [(201, None, {'job_id': '9bec07f7-16d9-4444-af87-df22c677d9eb', 'status': 'QUEUED'}), (429, '1', {'detail': 'Tenant submit rate limit exceeded; retry later'}), (429, '1', {'detail': 'Tenant submit rate limit exceeded; retry later'})]
+jobs_persisted= 1
+
+metrics_excerpt:
+job_system_api_submit_rate_limited_total 2.0
+job_system_api_submit_rate_limited_by_tenant_bucket_total{tenant_bucket="0"} 0.0
+job_system_api_submit_rate_limited_by_tenant_bucket_total{tenant_bucket="1"} 0.0
+job_system_api_submit_rate_limited_by_tenant_bucket_total{tenant_bucket="2"} 0.0
+job_system_api_submit_rate_limited_by_tenant_bucket_total{tenant_bucket="3"} 0.0
+job_system_api_submit_rate_limited_by_tenant_bucket_total{tenant_bucket="4"} 0.0
+job_system_api_submit_rate_limited_by_tenant_bucket_total{tenant_bucket="5"} 0.0
+job_system_api_submit_rate_limited_by_tenant_bucket_total{tenant_bucket="6"} 0.0
+job_system_api_submit_rate_limited_by_tenant_bucket_total{tenant_bucket="7"} 0.0
+job_system_api_submit_rate_limited_by_tenant_bucket_total{tenant_bucket="8"} 2.0
+job_system_api_submit_rate_limited_by_tenant_bucket_total{tenant_bucket="9"} 0.0
+job_system_api_submit_rate_limited_by_tenant_bucket_total{tenant_bucket="a"} 0.0
+job_system_api_submit_rate_limited_by_tenant_bucket_total{tenant_bucket="b"} 0.0
+job_system_api_submit_rate_limited_by_tenant_bucket_total{tenant_bucket="c"} 0.0
+job_system_api_submit_rate_limited_by_tenant_bucket_total{tenant_bucket="d"} 0.0
+job_system_api_submit_rate_limited_by_tenant_bucket_total{tenant_bucket="e"} 0.0
+job_system_api_submit_rate_limited_by_tenant_bucket_total{tenant_bucket="f"} 0.0

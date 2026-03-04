@@ -1,0 +1,44 @@
+M4.Closeout run surface map
+
+Primary run instructions:
+- README.md
+  - Quickstart B: Distributed Job System (build images, apply manifests, run migrations, submit jobs, scrape metrics)
+- docs/operations/local-dev.md
+  - Local dev stack procedure for API + scheduler + postgres
+- docs/operations/observability.md
+  - API and scheduler metrics scrape paths and key metric names
+
+API run/deploy surface:
+- k8s/job-system/api-deployment.yaml
+- k8s/job-system/api-service.yaml
+- API port-forward pattern: kubectl port-forward svc/job-system-api 18080:80
+- API health/metrics endpoints: GET /healthz, GET /metrics
+
+Scheduler run/deploy surface:
+- k8s/job-system/scheduler-deployment.yaml
+- k8s/job-system/scheduler-serviceaccount.yaml
+- k8s/job-system/scheduler-role.yaml
+- k8s/job-system/scheduler-rolebinding.yaml
+- Scheduler metrics port: SCHEDULER_METRICS_PORT (default 9000)
+
+DB + migration surface:
+- k8s/job-system/postgres.yaml
+- db/migrations/001_create_jobs.sql
+- db/migrations/002_m3_4_reliability.sql
+- db/migrations/003_m4_1_tenant_identity.sql
+- db/migrations/004_m4_3_tenant_scope_audit.sql
+- Migration execution documented via kubectl cp + kubectl exec psql in README/local-dev
+
+Verification commands surface:
+- scripts/evidence_check.sh phase4 m4.1
+- scripts/evidence_check.sh phase4 m4.2
+- scripts/evidence_check.sh phase4 m4.3
+- scripts/evidence_check.sh phase4 m4.4
+- scripts/evidence_check.sh phase4 m4.5
+- python -m ruff check .
+- python -m unittest discover -s tests -p "test_*.py"
+
+Env vars used for closeout verification run:
+- TENANT_MAX_RUNNING=1 (quota behavior proof)
+- TENANT_SUBMIT_RPS=1 and TENANT_SUBMIT_BURST=1 (rate limit proof)
+- SCHEDULER_METRICS_PORT=9000 (scheduler metrics scrape target)

@@ -1,0 +1,11 @@
+All checks passed!
+.cancel_not_found tenant_id=tenant-b job_id=4a24fed6-cc92-4dbe-96ef-b03b0355fd8d
+.get_not_found tenant_id=tenant-b job_id=f36c5a60-b30a-41c0-8f98-05113b20a1c6
+..idempotency_conflict idempotency_key=same-key
+...submit_rate_limited tenant_id=tenant-c retry_after=1
+.submit_rate_limited tenant_id=tenant-a retry_after=1
+..............
+----------------------------------------------------------------------
+Ran 22 tests in 0.164s
+
+OK
