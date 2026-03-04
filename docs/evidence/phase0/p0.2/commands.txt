@@ -1,0 +1,47 @@
+# Commands for phase0/p0.2
+
+# Branch setup
+
+git rev-parse --abbrev-ref HEAD
+git status --short --branch
+
+# Initialize evidence skeleton
+
+bash scripts/evidence_init.sh phase0 p0.2
+
+# Inspect lifecycle sources
+
+Get-Content db/migrations/001_create_jobs.sql
+Get-Content pkg/job_system/models.py
+Get-Content pkg/job_system/db.py
+Get-Content services/api/main.py
+Get-Content services/scheduler/main.py
+rg -n "QUEUED|RUNNING|SUCCEEDED|FAILED|CANCELED|status" pkg/job_system services/api services/scheduler db/migrations
+
+# Create lifecycle source map evidence
+
+# Wrote: docs/evidence/phase0/p0.2/outputs/01-lifecycle-source-map.txt
+
+# Author docs-only contract + README link + reflection update
+
+# Edited:
+# - docs/contracts/job-lifecycle.md
+# - README.md
+# - docs/reflection.md
+
+# Capture contract and transition proof pointers
+
+rg -n "docs/contracts/job-lifecycle.md" README.md
+rg -n "INSERT INTO jobs|QUEUED" pkg/job_system/db.py
+rg -n "def submit_job|create_job\(" services/api/main.py
+rg -n "def _dispatch_queued_jobs|mark_job_running" services/scheduler/main.py
+rg -n "def mark_job_running|status = 'QUEUED'" pkg/job_system/db.py
+rg -n "mark_job_terminal" services/scheduler/main.py
+rg -n "def mark_job_terminal|status = 'RUNNING'" pkg/job_system/db.py
+rg -n "mark_job_for_retry|compute_next_retry_at" services/scheduler/main.py pkg/job_system/db.py
+rg -n "def cancel_job|update_job_status\(|Only QUEUED jobs" services/api/main.py
+rg -n "status IN|job_attempts|TIMED_OUT" db/migrations/001_create_jobs.sql
+
+# Evidence check
+
+bash scripts/evidence_check.sh phase0 p0.2

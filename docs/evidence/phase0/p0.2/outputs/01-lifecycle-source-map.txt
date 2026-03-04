@@ -1,0 +1,44 @@
+Lifecycle authoritative sources (inspected before docs drafting)
+
+Key files examined:
+- db/migrations/001_create_jobs.sql
+- db/migrations/002_m3_4_reliability.sql
+- db/migrations/003_m4_1_tenant_identity.sql
+- pkg/job_system/models.py
+- pkg/job_system/db.py
+- services/api/main.py
+- services/scheduler/main.py
+
+Discovered status sets in code:
+- jobs.status CHECK constraint: QUEUED, RUNNING, SUCCEEDED, FAILED, CANCELED
+- job_attempts.status CHECK constraint: RUNNING, SUCCEEDED, FAILED, TIMED_OUT, CANCELED
+- Runtime logic currently updates jobs.status only; job_attempts table is defined but not actively written by scheduler/api paths.
+
+Where initial state is set:
+- pkg/job_system/db.py:create_job() inserts jobs.status='QUEUED'.
+- services/api/main.py:submit_job() calls create_job().
+
+Where transitions occur:
+- QUEUED -> RUNNING:
+  - services/scheduler/main.py:_dispatch_queued_jobs() -> repo.mark_job_running(job.id)
+- RUNNING -> SUCCEEDED:
+  - services/scheduler/main.py:_reconcile_running_jobs() when k8s status.succeeded > 0 -> repo.mark_job_terminal(..., 'SUCCEEDED')
+- RUNNING -> FAILED:
+  - services/scheduler/main.py:_reconcile_running_jobs() on failed outcome -> repo.mark_job_terminal(..., 'FAILED')
+  - services/scheduler/main.py:_handle_timeout() -> repo.mark_job_terminal(..., 'FAILED', error='timeout')
+  - services/scheduler/main.py:_reconcile_running_jobs() missing k8s job -> repo.mark_job_terminal(..., 'FAILED', ...)
+- RUNNING -> QUEUED (retry):
+  - services/scheduler/main.py:_reconcile_running_jobs() -> repo.mark_job_for_retry(...)
+- QUEUED -> CANCELED:
+  - services/api/main.py:cancel_job() -> repo.update_job_status(job_id, 'CANCELED')
+
+Retry/backoff mechanics:
+- Dispatch filter: repo.list_dispatchable_jobs() requires status='QUEUED' and next_retry_at <= now.
+- Retry schedule: pkg/job_system/db.py:compute_next_retry_at() triangular backoff.
+
+How running is defined:
+- Running is DB status='RUNNING' (repo.list_jobs(status='RUNNING')).
+- Not inferred solely from live k8s resources.
+
+Worker callback/completion handler:
+- No separate worker callback service. Scheduler reconciler directly observes Kubernetes Job status and writes terminal states.

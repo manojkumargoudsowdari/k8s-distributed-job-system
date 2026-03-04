@@ -1,0 +1,47 @@
+Transition proof pointers (file + function):
+
+Initial state:
+48:        INSERT INTO jobs (
+56:            'QUEUED', %(created_at)s, %(queued_at)s, %(next_retry_at)s, %(updated_at)s
+126:        WHERE status = 'QUEUED'
+183:        WHERE id = %(id)s AND status = 'QUEUED'
+198:        SET status = 'QUEUED',
+156:def submit_job(
+196:    created = repo.create_job(
+
+QUEUED -> RUNNING:
+121:    def _dispatch_queued_jobs(self) -> None:
+144:            marked = self.repo.mark_job_running(job.id)
+126:        WHERE status = 'QUEUED'
+174:    def mark_job_running(self, job_id: UUID) -> Job | None:
+183:        WHERE id = %(id)s AND status = 'QUEUED'
+198:        SET status = 'QUEUED',
+
+RUNNING -> SUCCEEDED/FAILED:
+198:                terminal = self.repo.mark_job_terminal(
+212:                terminal = self.repo.mark_job_terminal(job.id, "SUCCEEDED")
+239:                    terminal = self.repo.mark_job_terminal(
+291:        terminal = self.repo.mark_job_terminal(job.id, "FAILED", error="timeout")
+137:        query = "SELECT COUNT(*) AS count FROM jobs WHERE status = 'RUNNING' AND tenant_id = %(tenant_id)s"
+178:        SET status = 'RUNNING',
+203:        WHERE id = %(id)s AND status = 'RUNNING'
+221:    def mark_job_terminal(
+232:        WHERE id = %(id)s AND status = 'RUNNING'
+
+RUNNING -> QUEUED (retry):
+pkg/job_system/db.py:192:    def mark_job_for_retry(
+pkg/job_system/db.py:296:def compute_next_retry_at(*, attempts_completed: int, backoff_seconds: int) -> datetime:
+services/scheduler/main.py:21:    compute_next_retry_at,
+services/scheduler/main.py:221:                    next_retry_at = compute_next_retry_at(
+services/scheduler/main.py:225:                    self.repo.mark_job_for_retry(
+
+QUEUED -> CANCELED:
+254:def cancel_job(
+267:            detail="Only QUEUED jobs can be canceled in M3.2",
+269:    updated = repo.update_job_status(job_id, "CANCELED")
+
+Authoritative status domains (schema):
+17:    status TEXT NOT NULL CHECK (status IN ('QUEUED', 'RUNNING', 'SUCCEEDED', 'FAILED', 'CANCELED')),
+28:CREATE TABLE IF NOT EXISTS job_attempts (
+32:    status TEXT NOT NULL CHECK (status IN ('RUNNING', 'SUCCEEDED', 'FAILED', 'TIMED_OUT', 'CANCELED')),
+43:CREATE INDEX IF NOT EXISTS idx_job_attempts_job_id ON job_attempts(job_id);
