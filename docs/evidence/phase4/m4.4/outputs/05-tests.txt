@@ -1,0 +1,9 @@
+All checks passed!
+.cancel_not_found tenant_id=tenant-b job_id=26facf34-0a44-4ab0-bd30-3d8ca2186bda
+.get_not_found tenant_id=tenant-b job_id=d5155d49-b663-4727-bd00-67abde6be297
+..idempotency_conflict idempotency_key=same-key
+.................
+----------------------------------------------------------------------
+Ran 21 tests in 0.094s
+
+OK

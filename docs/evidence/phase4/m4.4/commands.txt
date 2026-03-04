@@ -1,0 +1,27 @@
+# Commands for phase4/m4.4
+
+# Branch setup
+git status
+git rev-parse --abbrev-ref HEAD
+
+# Evidence skeleton
+bash scripts/evidence_init.sh phase4 m4.4
+
+# Inspection
+Get-Content services/api/main.py
+Get-Content pkg/job_system/db.py
+Get-Content pkg/job_system/metrics.py
+Get-Content tests/test_m3_2_api.py
+Get-Content docs/contracts/api.md
+
+# Evidence outputs
+# 01: wrote manual surface map notes
+# 02: python inline script with TestClient + shared TenantRateLimiter(rps=1, burst=1)
+# 03: python inline script with env caps set per case and submit requests
+# 04: python inline script proving throttled submits do not create rows in repo
+# 05: lint + unit tests
+python -m ruff check . > docs/evidence/phase4/m4.4/outputs/05-tests.txt 2>&1
+python -m unittest discover -s tests -p "test_*.py" >> docs/evidence/phase4/m4.4/outputs/05-tests.txt 2>&1
+
+# 06: evidence check
+bash scripts/evidence_check.sh phase4 m4.4 > docs/evidence/phase4/m4.4/outputs/06-evidence-check.txt 2>&1

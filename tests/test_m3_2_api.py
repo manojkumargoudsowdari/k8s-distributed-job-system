@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+import os
 from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID, uuid4
@@ -8,7 +9,7 @@ from uuid import UUID, uuid4
 from fastapi.testclient import TestClient
 
 from pkg.job_system.models import Job
-from services.api.main import app, get_repository
+from services.api.main import TenantRateLimiter, app, get_repository, get_submit_limiter
 
 
 class FakeRepository:
@@ -121,10 +122,26 @@ class JobApiTests(unittest.TestCase):
     def setUp(self) -> None:
         self.repo = FakeRepository()
         app.dependency_overrides[get_repository] = lambda: self.repo
+        app.dependency_overrides[get_submit_limiter] = lambda: TenantRateLimiter(
+            rps=1000.0, burst=1000
+        )
         self.client = TestClient(app)
+        self._saved_env = {
+            "JOB_SUBMIT_MAX_PAYLOAD_BYTES": os.getenv("JOB_SUBMIT_MAX_PAYLOAD_BYTES"),
+            "JOB_SUBMIT_MAX_ENV_VARS": os.getenv("JOB_SUBMIT_MAX_ENV_VARS"),
+            "JOB_SUBMIT_MAX_ENV_KEY_LENGTH": os.getenv("JOB_SUBMIT_MAX_ENV_KEY_LENGTH"),
+            "JOB_SUBMIT_MAX_ENV_VALUE_LENGTH": os.getenv("JOB_SUBMIT_MAX_ENV_VALUE_LENGTH"),
+            "JOB_SUBMIT_MAX_RETRIES": os.getenv("JOB_SUBMIT_MAX_RETRIES"),
+            "JOB_SUBMIT_MAX_TIMEOUT_SECONDS": os.getenv("JOB_SUBMIT_MAX_TIMEOUT_SECONDS"),
+        }
 
     def tearDown(self) -> None:
         app.dependency_overrides.clear()
+        for key, value in self._saved_env.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
 
     def test_create_job(self) -> None:
         response = self.client.post(
@@ -252,6 +269,87 @@ class JobApiTests(unittest.TestCase):
         assert job is not None
         self.assertEqual(job.submitted_by, "alice")
         self.assertEqual(job.request_id, "req-123")
+
+    def test_rate_limit_applies_per_tenant(self) -> None:
+        limiter = TenantRateLimiter(rps=1.0, burst=1)
+        app.dependency_overrides[get_submit_limiter] = lambda: limiter
+        payload = {"image": "busybox:1.36"}
+
+        first_a = self.client.post(
+            "/jobs", json=payload, headers={"X-Tenant-Id": "tenant-a"}
+        )
+        second_a = self.client.post(
+            "/jobs", json=payload, headers={"X-Tenant-Id": "tenant-a"}
+        )
+        first_b = self.client.post(
+            "/jobs", json=payload, headers={"X-Tenant-Id": "tenant-b"}
+        )
+
+        self.assertEqual(first_a.status_code, 201)
+        self.assertEqual(second_a.status_code, 429)
+        self.assertEqual(first_b.status_code, 201)
+        self.assertEqual(second_a.headers.get("Retry-After"), "1")
+        self.assertEqual(
+            second_a.json()["detail"], "Tenant submit rate limit exceeded; retry later"
+        )
+
+    def test_submit_rejects_payload_over_cap(self) -> None:
+        os.environ["JOB_SUBMIT_MAX_PAYLOAD_BYTES"] = "120"
+        response = self.client.post(
+            "/jobs",
+            headers={"X-Tenant-Id": "tenant-a"},
+            json={
+                "image": "busybox:1.36",
+                "command": ["sh", "-c"],
+                "args": ["echo " + ("x" * 200)],
+            },
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("JOB_SUBMIT_MAX_PAYLOAD_BYTES", response.json()["detail"])
+
+    def test_submit_rejects_env_caps(self) -> None:
+        os.environ["JOB_SUBMIT_MAX_ENV_VARS"] = "1"
+        response_too_many = self.client.post(
+            "/jobs",
+            headers={"X-Tenant-Id": "tenant-a"},
+            json={
+                "image": "busybox:1.36",
+                "env": {"A": "1", "B": "2"},
+            },
+        )
+        self.assertEqual(response_too_many.status_code, 400)
+        self.assertIn("JOB_SUBMIT_MAX_ENV_VARS", response_too_many.json()["detail"])
+
+        os.environ["JOB_SUBMIT_MAX_ENV_VARS"] = "10"
+        os.environ["JOB_SUBMIT_MAX_ENV_KEY_LENGTH"] = "3"
+        response_key_len = self.client.post(
+            "/jobs",
+            headers={"X-Tenant-Id": "tenant-a"},
+            json={"image": "busybox:1.36", "env": {"TOOLONG": "1"}},
+        )
+        self.assertEqual(response_key_len.status_code, 400)
+        self.assertIn("JOB_SUBMIT_MAX_ENV_KEY_LENGTH", response_key_len.json()["detail"])
+
+    def test_submit_rejects_retries_and_timeout_caps(self) -> None:
+        os.environ["JOB_SUBMIT_MAX_RETRIES"] = "2"
+        retries_response = self.client.post(
+            "/jobs",
+            headers={"X-Tenant-Id": "tenant-a"},
+            json={"image": "busybox:1.36", "max_retries": 3},
+        )
+        self.assertEqual(retries_response.status_code, 400)
+        self.assertIn("JOB_SUBMIT_MAX_RETRIES", retries_response.json()["detail"])
+
+        os.environ["JOB_SUBMIT_MAX_TIMEOUT_SECONDS"] = "30"
+        timeout_response = self.client.post(
+            "/jobs",
+            headers={"X-Tenant-Id": "tenant-a"},
+            json={"image": "busybox:1.36", "timeout_seconds": 31},
+        )
+        self.assertEqual(timeout_response.status_code, 400)
+        self.assertIn(
+            "JOB_SUBMIT_MAX_TIMEOUT_SECONDS", timeout_response.json()["detail"]
+        )
 
 
 if __name__ == "__main__":

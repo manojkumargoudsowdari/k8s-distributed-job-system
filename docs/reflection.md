@@ -1120,3 +1120,53 @@ Evidence:
 - `docs/evidence/phase4/m4.3/outputs/05-db-audit-fields.txt`
 - `docs/evidence/phase4/m4.3/outputs/06-tests.txt`
 - `docs/evidence/phase4/m4.3/outputs/07-evidence-check.txt`
+
+## 28) Phase 4 M4.4 - Admission Control + Per-Tenant Rate Limiting
+
+What changed:
+
+- Added per-tenant submit throttling on API submit path:
+  - `services/api/main.py`
+  - In-memory token bucket limiter (`TenantRateLimiter`) with env-driven knobs:
+    - `TENANT_SUBMIT_RPS` (default `2`)
+    - `TENANT_SUBMIT_BURST` (default `5`)
+  - Over-limit submit requests return:
+    - HTTP `429`
+    - body `{"detail":"Tenant submit rate limit exceeded; retry later"}`
+    - `Retry-After` response header
+- Added central submit admission caps in API:
+  - `JOB_SUBMIT_MAX_PAYLOAD_BYTES` (default `16384`)
+  - `JOB_SUBMIT_MAX_ENV_VARS` (default `64`)
+  - `JOB_SUBMIT_MAX_ENV_KEY_LENGTH` (default `128`)
+  - `JOB_SUBMIT_MAX_ENV_VALUE_LENGTH` (default `2048`)
+  - `JOB_SUBMIT_MAX_RETRIES` (default `10`)
+  - `JOB_SUBMIT_MAX_TIMEOUT_SECONDS` (default `86400`)
+- Added M4.4 API tests:
+  - `tests/test_m3_2_api.py`
+  - Coverage for per-tenant throttling, cap violations, and non-regression paths.
+- Updated API contract docs for throttling and admission behavior:
+  - `docs/contracts/api.md`
+
+What was proven:
+
+- Burst submits for one tenant are throttled with deterministic `429` and `Retry-After`.
+- Another tenant is not throttled by first-tenant overuse.
+- Admission caps reject oversized/invalid submit payloads with deterministic `400` detail messages.
+- Throttled submits do not create new job rows; accepted submits still persist.
+- Lint and full unit tests pass.
+- Evidence pack validation passes `scripts/evidence_check.sh phase4 m4.4`.
+
+Limitations:
+
+- Rate limiter state is in-memory and per API process.
+- Limiter state resets on API restart and is not coordinated across multiple API replicas.
+
+Evidence:
+
+- `docs/evidence/phase4/m4.4/runbook.md`
+- `docs/evidence/phase4/m4.4/outputs/01-admission-surface-map.txt`
+- `docs/evidence/phase4/m4.4/outputs/02-rate-limit-burst.txt`
+- `docs/evidence/phase4/m4.4/outputs/03-validation-caps.txt`
+- `docs/evidence/phase4/m4.4/outputs/04-scheduler-stability-under-load.txt`
+- `docs/evidence/phase4/m4.4/outputs/05-tests.txt`
+- `docs/evidence/phase4/m4.4/outputs/06-evidence-check.txt`
