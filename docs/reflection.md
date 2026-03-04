@@ -988,3 +988,31 @@ Evidence:
 - `docs/evidence/phase0/p0.4/outputs/03-index-to-query-mapping.txt`
 - `docs/evidence/phase0/p0.4/outputs/04-migration-policy-proof.txt`
 - `docs/evidence/phase0/p0.4/outputs/05-evidence-check.txt`
+
+## 24) Phase 0 P0.5 - Operational Model (Local Dev, Scaling, Failure Modes, Observability)
+
+What changed:
+
+- Added operations documentation set:
+  - `docs/operations/local-dev.md`
+  - `docs/operations/scaling-and-ha.md`
+  - `docs/operations/failure-modes.md`
+  - `docs/operations/observability.md`
+- Added README navigation links for operations docs.
+
+What was proven:
+
+- Local/dev run sources were mapped from README, manifests, Dockerfiles, scripts, and CI workflow.
+- Runtime behavior under restart/failure was mapped from scheduler reconcile/retry/timeout code paths.
+- Observability surfaces were documented from API/scheduler metric endpoints and shared metric definitions.
+- Core failure modes were documented with detection and recovery guidance grounded in current implementation.
+- Evidence pack validation passes `scripts/evidence_check.sh phase0 p0.5`.
+
+Evidence:
+
+- `docs/evidence/phase0/p0.5/runbook.md`
+- `docs/evidence/phase0/p0.5/outputs/01-ops-source-map.txt`
+- `docs/evidence/phase0/p0.5/outputs/02-operations-docs.txt`
+- `docs/evidence/phase0/p0.5/outputs/03-observability-proof-pointers.txt`
+- `docs/evidence/phase0/p0.5/outputs/04-failure-mode-proof-pointers.txt`
+- `docs/evidence/phase0/p0.5/outputs/05-evidence-check.txt`

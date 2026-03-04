@@ -1,0 +1,230 @@
+=== docs/operations/local-dev.md ===
+# Local Dev
+
+## Prerequisites
+- `kind`
+- `kubectl`
+- `docker`
+- Python `3.12` (aligned with CI and Dockerfiles)
+
+## Quick Start (API + Scheduler + DB)
+
+1. Build images:
+```bash
+docker build -f Dockerfile.api -t job-system-api:0.1.0 .
+docker build -f Dockerfile.scheduler -t job-system-scheduler:0.1.0 .
+```
+
+2. Load images into Kind cluster (`ai-infra-lab`):
+```bash
+kind load docker-image job-system-api:0.1.0 --name ai-infra-lab
+kind load docker-image job-system-scheduler:0.1.0 --name ai-infra-lab
+```
+
+3. Deploy DB/API/scheduler:
+```bash
+kubectl apply -f k8s/job-system/postgres.yaml
+kubectl apply -f k8s/job-system/api-deployment.yaml
+kubectl apply -f k8s/job-system/api-service.yaml
+kubectl apply -f k8s/job-system/scheduler-serviceaccount.yaml
+kubectl apply -f k8s/job-system/scheduler-role.yaml
+kubectl apply -f k8s/job-system/scheduler-rolebinding.yaml
+kubectl apply -f k8s/job-system/scheduler-deployment.yaml
+```
+
+4. Wait for rollouts:
+```bash
+kubectl rollout status deployment/job-system-postgres --timeout=180s
+kubectl rollout status deployment/job-system-api --timeout=180s
+kubectl rollout status deployment/job-system-scheduler --timeout=180s
+```
+
+5. Apply migrations:
+```bash
+DB_POD=$(kubectl get pods -l app=job-system-postgres -o jsonpath='{.items[0].metadata.name}')
+kubectl cp db/migrations/001_create_jobs.sql default/$DB_POD:/tmp/001_create_jobs.sql
+kubectl cp db/migrations/002_m3_4_reliability.sql default/$DB_POD:/tmp/002_m3_4_reliability.sql
+kubectl cp db/migrations/003_m4_1_tenant_identity.sql default/$DB_POD:/tmp/003_m4_1_tenant_identity.sql
+kubectl exec $DB_POD -- psql -U jobs -d jobs -f /tmp/001_create_jobs.sql
+kubectl exec $DB_POD -- psql -U jobs -d jobs -f /tmp/002_m3_4_reliability.sql
+kubectl exec $DB_POD -- psql -U jobs -d jobs -f /tmp/003_m4_1_tenant_identity.sql
+```
+
+## Lint and Tests
+- Same commands as CI:
+```bash
+python -m ruff check .
+python -m unittest discover -s tests -p "test_*.py"
+```
+
+## Runtime Validation
+1. Port-forward API:
+```bash
+kubectl port-forward svc/job-system-api 18080:80
+```
+
+2. Health endpoint:
+```bash
+curl -s http://127.0.0.1:18080/healthz
+```
+
+3. API metrics endpoint:
+```bash
+curl -s http://127.0.0.1:18080/metrics | grep job_system_
+```
+
+4. Submit sample job with tenant header:
+```bash
+curl -s -X POST http://127.0.0.1:18080/jobs \
+  -H "Content-Type: application/json" \
+  -H "X-Tenant-Id: team_alpha" \
+  -H "Idempotency-Key: local-dev-001" \
+  -d '{"image":"busybox:1.36","command":["sh","-c"],"args":["echo ok; sleep 3; exit 0"],"queue":"default"}'
+```
+
+5. Verify lifecycle:
+```bash
+curl -s http://127.0.0.1:18080/jobs/<job_id>
+kubectl get jobs -l job-system/managed-by=scheduler -o wide
+```
+
+## Logs and What to Check
+- API logs:
+```bash
+kubectl logs deployment/job-system-api --tail=200
+```
+- Scheduler logs:
+```bash
+kubectl logs deployment/job-system-scheduler --tail=200
+```
+
+Look for:
+- submit path (`submit_created`, `submit_idempotent_hit`)
+- scheduler transitions (`job_running`, `job_succeeded`, `job_failed`, `job_requeued_for_retry`)
+- failure/recovery signals (`k8s_job_create_failed`, `missing_k8s_job_failed`, `job_timeout_failed`)
+
+=== docs/operations/scaling-and-ha.md ===
+# Scaling and HA
+
+## Current Scaling Stance
+
+## API
+- API process is stateless for request handling.
+- API can be horizontally scaled at deployment level.
+- Shared state is externalized to Postgres via repository calls.
+
+## Scheduler
+- Current deployment sets `replicas: 1`.
+- No leader election or DB claim-lock strategy is implemented.
+- Multi-replica scheduler operation is not supported as an HA contract yet.
+
+## Database
+- Postgres deployment in `k8s/job-system/postgres.yaml` is single-replica and ephemeral (no PVC).
+- DB is a single point of failure in current local/dev topology.
+
+## Failure/Restart Behavior
+
+### Scheduler restarts mid-run
+- On restart, scheduler reconcile loop reloads from DB.
+- `RUNNING` rows are rechecked against Kubernetes jobs.
+- Missing backing k8s job is marked failed; existing jobs continue reconciliation.
+
+### API restarts mid-submit
+- API writes go through transaction-scoped repository methods.
+- Idempotency key logic can return existing job if duplicate submit is retried with same payload+tenant.
+- Client-side retry with same `Idempotency-Key` is recommended for uncertain responses.
+
+### DB temporarily unavailable
+- API/scheduler DB operations fail fast at query time.
+- Scheduler loop cannot dispatch/reconcile while DB is down.
+- Recovery path is restore DB connectivity, then scheduler/API continue from persisted state.
+
+## Known Bottlenecks and Next Improvements
+- Scheduler single instance limits throughput and HA.
+- DB dependency for every control-plane transition can bottleneck at higher load.
+- Current quota policy is per tenant (`TENANT_MAX_RUNNING`) but fairness and stronger admission control are follow-on work.
+- Planned hardening path (Phase 4+):
+  - stronger multi-tenant fairness
+  - request rate limiting/admission controls
+  - additional query/index tuning
+  - multi-scheduler safety (leader election or DB claim model)
+
+=== docs/operations/failure-modes.md ===
+# Failure Modes
+
+| Failure Mode | Symptom | Detection Signal | Mitigation / Recovery |
+|---|---|---|---|
+| DB connection failure | API submit/get/list errors; scheduler stops progressing | API/scheduler logs with DB/connection errors; queue/running metrics stop changing | Restore Postgres availability, verify `DATABASE_URL`, restart affected deployment if needed |
+| Scheduler crash/restart | Temporary dispatch/reconcile pause | Scheduler pod restart count/events; gap in `job_running` logs | Kubernetes restarts pod; scheduler reconcile loop resumes from DB state |
+| Kubernetes Job creation failure | Job remains unexecuted; terminal failure may be recorded | Scheduler logs `k8s_job_create_failed`; failed transition logs | Fix RBAC/image/spec issue and resubmit; inspect scheduler role and k8s events |
+| Stuck `QUEUED` jobs | Jobs do not move to `RUNNING` | API list shows long-lived `QUEUED`; scheduler logs show quota/backoff gating or no dispatch | Check tenant quota (`TENANT_MAX_RUNNING`), retry gate (`next_retry_at`), scheduler health, DB readiness |
+| Repeated retries/backoff | Same job cycles `RUNNING -> QUEUED` before terminal | Logs show `job_requeued_for_retry`; retry counter and attempts increase | Confirm failure root cause, adjust `max_retries`/`backoff_seconds`, inspect container command/image |
+| Tenant quota blocking (expected) | Additional jobs for same tenant remain `QUEUED` while limit reached | Scheduler logs `dispatch_skipped_tenant_quota`; running count for tenant at limit | Wait for running jobs to complete or adjust `TENANT_MAX_RUNNING` for workload profile |
+
+=== docs/operations/observability.md ===
+# Observability
+
+## Metrics Endpoints
+
+## API metrics
+- Path: `GET /metrics`
+- Local access (port-forward):
+```bash
+kubectl port-forward svc/job-system-api 18080:80
+curl -s http://127.0.0.1:18080/metrics | grep job_system_
+```
+
+## Scheduler metrics
+- Exposed by scheduler process on `SCHEDULER_METRICS_PORT` (default `9000`).
+- Local access:
+```bash
+SCHED_POD=$(kubectl get pods -l app=job-system-scheduler -o jsonpath='{.items[0].metadata.name}')
+kubectl port-forward pod/$SCHED_POD 19000:9000
+curl -s http://127.0.0.1:19000/metrics | grep job_system_
+```
+
+## Key Metrics (as implemented)
+- `job_system_jobs_queued` (gauge)
+- `job_system_jobs_running` (gauge)
+- `job_system_job_success_total` (counter)
+- `job_system_job_fail_total` (counter)
+- `job_system_job_retries_total` (counter)
+- `job_system_job_latency_seconds` (histogram)
+
+## Logging Signals
+
+Important log fields/markers:
+- `job_id`
+- `tenant_id`
+- `status` / attempt transitions
+
+Examples:
+- API:
+  - `submit_created job_id=... status=...`
+  - `submit_idempotent_hit job_id=... status=...`
+  - `get_job job_id=... status=... attempts=...`
+- Scheduler:
+  - `job_running tenant_id=... job_id=... attempt=...`
+  - `job_succeeded job_id=...`
+  - `job_requeued_for_retry job_id=... next_retry_at=...`
+  - `job_failed job_id=... error=...`
+  - `job_timeout_failed job_id=...`
+
+## Recommended Alerts / SLO Ideas (Docs-only)
+- Queue saturation:
+  - Alert when `job_system_jobs_queued` remains above threshold for sustained window.
+- Failure rate:
+  - Alert on slope increase in `job_system_job_fail_total`.
+- Retry storm:
+  - Alert on rapid increase of `job_system_job_retries_total`.
+- High latency:
+  - Use `job_system_job_latency_seconds` high-percentile thresholds.
+- Scheduler health:
+  - Alert if scheduler logs stop emitting transition events while queued jobs continue growing.
+
+=== README operations links ===
+25:- Operations docs:
+26:  - `docs/operations/local-dev.md`
+27:  - `docs/operations/observability.md`
+28:  - `docs/operations/failure-modes.md`
+29:  - `docs/operations/scaling-and-ha.md`

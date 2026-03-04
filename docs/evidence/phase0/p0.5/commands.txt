@@ -1,0 +1,67 @@
+# Commands for phase0/p0.5
+
+# Branch context
+
+git rev-parse --abbrev-ref HEAD
+git status --short --branch
+
+# Initialize evidence skeleton
+
+bash scripts/evidence_init.sh phase0 p0.5
+
+# Inspect operational sources
+
+Get-Content README.md
+Get-ChildItem -Name
+Get-ChildItem .github -Recurse | Select-Object FullName
+Get-Content .github/workflows/ci.yml
+Get-ChildItem scripts | Select-Object Name
+Get-Content services/api/main.py
+Get-Content services/scheduler/main.py
+Get-Content pkg/job_system/metrics.py
+Get-Content k8s/job-system/api-deployment.yaml
+Get-Content k8s/job-system/api-service.yaml
+Get-Content k8s/job-system/scheduler-deployment.yaml
+Get-Content k8s/job-system/postgres.yaml
+Get-Content Dockerfile.api
+Get-Content Dockerfile.scheduler
+Get-Content services/api/requirements.txt
+Get-Content services/scheduler/requirements.txt
+Get-ChildItem -Force -Name .env*
+
+# Create inspection source map
+
+# docs/evidence/phase0/p0.5/outputs/01-ops-source-map.txt
+
+# Docs updates
+
+# Added:
+# - docs/operations/local-dev.md
+# - docs/operations/scaling-and-ha.md
+# - docs/operations/failure-modes.md
+# - docs/operations/observability.md
+# Modified:
+# - README.md
+# - docs/reflection.md
+
+# Proof pointers
+
+rg -n "Operations docs|docs/operations/" README.md
+rg -n '/metrics|render_metrics|/healthz' services/api/main.py
+rg -n 'start_http_server|SCHEDULER_METRICS_PORT|refresh_gauges_from_db|sync_counters_from_db' services/scheduler/main.py
+rg -n 'job_system_jobs_queued|job_system_jobs_running|job_system_job_success_total|job_system_job_fail_total|job_system_job_retries_total|job_system_job_latency_seconds|def render_metrics' pkg/job_system/metrics.py
+rg -n 'containerPort: 8000|path: /healthz' k8s/job-system/api-deployment.yaml
+rg -n 'port: 80|targetPort: 8000' k8s/job-system/api-service.yaml
+rg -n 'containerPort: 9000|SCHEDULER_METRICS_PORT' k8s/job-system/scheduler-deployment.yaml
+rg -n 'submit_created|submit_idempotent_hit|get_job|cancelled|job_running|job_succeeded|job_requeued_for_retry|job_failed|job_timeout_failed' services/api/main.py services/scheduler/main.py
+rg -n 'DATABASE_URL|RuntimeError\("DATABASE_URL is not set"\)|JobRepository\(' services/api/main.py services/scheduler/main.py pkg/job_system/db.py
+rg -n 'run_forever|reconcile_once|_reconcile_running_jobs|missing_k8s_job_failed|dispatch_skip_state_changed' services/scheduler/main.py
+rg -n 'k8s_job_create_failed|ApiException|update_job_status\(|FAILED' services/scheduler/main.py
+rg -n 'mark_job_for_retry|compute_next_retry_at|max_retries|job_requeued_for_retry|next_retry_at' services/scheduler/main.py pkg/job_system/db.py
+rg -n '_is_timed_out|_handle_timeout|mark_job_terminal\(job.id, "FAILED", error="timeout"\)|k8s job missing for running state' services/scheduler/main.py
+rg -n 'TENANT_MAX_RUNNING|count_running_jobs_by_tenant|dispatch_skipped_tenant_quota' services/scheduler/main.py k8s/job-system/scheduler-deployment.yaml pkg/job_system/db.py
+rg -n 'Idempotency-Key conflict|status_code=status.HTTP_409_CONFLICT|get_job_by_idempotency_key' services/api/main.py
+
+# Evidence validation
+
+bash scripts/evidence_check.sh phase0 p0.5
