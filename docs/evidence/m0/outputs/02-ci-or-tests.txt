@@ -1,0 +1,19 @@
+# M0 CI/Test Proof
+
+## python -m unittest tests/test_m3_2_api.py
+.idempotency_conflict idempotency_key=same-key
+...
+----------------------------------------------------------------------
+Ran 4 tests in 0.039s
+
+OK
+
+## python -m pip install ruff
+Defaulting to user installation because normal site-packages is not writeable
+Requirement already satisfied: ruff in c:\users\manoj\appdata\roaming\python\python313\site-packages (0.9.10)
+
+[notice] A new release of pip is available: 24.3.1 -> 26.0.1
+[notice] To update, run: python.exe -m pip install --upgrade pip
+
+## python -m ruff check .
+All checks passed!

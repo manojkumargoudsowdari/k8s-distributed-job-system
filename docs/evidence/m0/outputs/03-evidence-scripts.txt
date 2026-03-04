@@ -1,0 +1,16 @@
+# M0 Evidence Script Proof
+
+## evidence_init.sh --help
+Usage: scripts/evidence_init.sh <phase> <milestone>
+Example: scripts/evidence_init.sh phase4 m4.1
+
+## evidence_check.sh --help
+Usage: scripts/evidence_check.sh <phase> <milestone>
+Example: scripts/evidence_check.sh phase4 m4.1
+
+## evidence_init.sh phase4 m4.1
+Initialized evidence skeleton at docs/evidence/phase4/m4.1
+
+## evidence_check.sh phase4 m4.1 (expected fail before 01-*.txt exists)
+ERROR: expected at least one outputs/01-*.txt file under docs/evidence/phase4/m4.1/outputs
+Evidence check FAILED for phase4/m4.1 with 1 error(s).

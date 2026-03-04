@@ -1,0 +1,48 @@
+name: Milestone
+description: Track a milestone with acceptance criteria and required evidence.
+title: "Milestone: "
+labels:
+  - milestone
+body:
+  - type: input
+    id: milestone_id
+    attributes:
+      label: Milestone ID
+      description: Example `M4.1`
+      placeholder: M4.1
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria
+      description: List exact pass/fail criteria.
+      placeholder: |
+        - criterion 1
+        - criterion 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: required_evidence
+    attributes:
+      label: Required Evidence Filenames
+      description: Deterministic filenames expected under `docs/evidence/.../outputs/`.
+      placeholder: |
+        - 01-...
+        - 02-...
+    validations:
+      required: true
+
+  - type: textarea
+    id: rollback
+    attributes:
+      label: Rollback Notes
+      description: Steps to revert safely if this milestone causes regressions.
+      placeholder: |
+        1. Revert commit/PR
+        2. Re-apply stable manifests
+        3. Verify service health
+    validations:
+      required: true

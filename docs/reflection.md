@@ -796,3 +796,40 @@ Evidence:
 - `docs/evidence/phase3/m3.5/outputs/05-logs-correlation.txt`
 - `docs/evidence/phase3/m3.5/runbook.md`
 - `docs/evidence/phase3/m3.5/commands.txt`
+
+## 18) M0 - Production Workflow Foundation
+
+What changed:
+
+- Added Phase 4 planning document in repo docs convention:
+  - `docs/plans/phase4.md`
+- Added ADR scaffolding:
+  - `docs/adr/README.md`
+  - `docs/adr/0000-template.md`
+  - `docs/adr/0004-tenant-identity-source.md`
+- Added PR and issue governance templates:
+  - `.github/pull_request_template.md`
+  - `.github/ISSUE_TEMPLATE/milestone.yml`
+  - `.github/ISSUE_TEMPLATE/bug.yml`
+- Added code ownership file:
+  - `.github/CODEOWNERS`
+- Added evidence automation scripts:
+  - `scripts/evidence_init.sh`
+  - `scripts/evidence_check.sh`
+  - usage guide `docs/runbooks/evidence-workflow.md`
+- Updated CI to enforce workflow foundations:
+  - `.github/workflows/ci.yml` now checks lint, unit tests, and evidence scripts existence/executability.
+
+What was proven:
+
+- Repository conventions (planning docs, evidence structure, CI locations) were inspected and captured.
+- Local unit tests and lint command executed successfully.
+- Evidence init/check scripts run successfully for help/init paths and deterministically fail when `outputs/01-*.txt` is absent.
+
+M0 evidence:
+
+- `docs/evidence/m0/runbook.md`
+- `docs/evidence/m0/commands.txt`
+- `docs/evidence/m0/outputs/01-repo-structure.txt`
+- `docs/evidence/m0/outputs/02-ci-or-tests.txt`
+- `docs/evidence/m0/outputs/03-evidence-scripts.txt`

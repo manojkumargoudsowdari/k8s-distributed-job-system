@@ -1,0 +1,15 @@
+# Inspection
+Get-ChildItem -Recurse -Depth 4 | Select-Object FullName
+Get-ChildItem -Recurse -Force .github,docs,scripts | Select-Object FullName
+git remote -v
+
+# Local validation
+python -m unittest tests/test_m3_2_api.py
+python -m pip install ruff
+python -m ruff check .
+
+# Evidence scripts
+wsl bash -lc "cd /mnt/d/Work/Code/Kubernetes/k8s-distributed-job-system && bash scripts/evidence_init.sh --help"
+wsl bash -lc "cd /mnt/d/Work/Code/Kubernetes/k8s-distributed-job-system && bash scripts/evidence_check.sh --help"
+wsl bash -lc "cd /mnt/d/Work/Code/Kubernetes/k8s-distributed-job-system && bash scripts/evidence_init.sh phase4 m4.1"
+wsl bash -lc "cd /mnt/d/Work/Code/Kubernetes/k8s-distributed-job-system && bash scripts/evidence_check.sh phase4 m4.1"

@@ -34,3 +34,10 @@ jobs:
 
       - name: Unit tests
         run: python -m unittest tests/test_m3_2_api.py
+
+      - name: Evidence scripts exist and are executable
+        run: |
+          test -x scripts/evidence_init.sh
+          test -x scripts/evidence_check.sh
+          bash -n scripts/evidence_init.sh
+          bash -n scripts/evidence_check.sh

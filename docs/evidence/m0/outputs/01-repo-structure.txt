@@ -1,0 +1,69 @@
+# M0 Inspection Findings
+
+## Repo Tree (Top 4 Levels)
+.
+|- .github/
+|  |- CODEOWNERS
+|  |- pull_request_template.md
+|  |- workflows/
+|     |- ci.yml
+|- app/
+|- db/
+|  |- migrations/
+|     |- 001_create_jobs.sql
+|     |- 002_m3_4_reliability.sql
+|- docs/
+|  |- adr/
+|  |- architecture/
+|  |- evidence/
+|  |  |- phase3/
+|  |- plans/
+|  |- reflection.md
+|- k8s/
+|  |- experiments/
+|  |- job-system/
+|  |- model-serving/
+|- pkg/
+|  |- job_system/
+|- scripts/
+|  |- m3_1_db_smoke.py
+|- services/
+|  |- api/
+|  |- scheduler/
+|- tests/
+|  |- test_m3_2_api.py
+|- README.md
+|- phase3.txt
+|- phase4.txt
+
+## Existing Planning Docs
+- Root planning docs: `phase3.txt`, `phase4.txt`
+- Structured planning doc: `docs/plans/phase4.md`
+
+## Evidence Pack Structure and Naming (Phase 3)
+- Base path: `docs/evidence/phase3/`
+- Milestone folders: `m3.1` ... `m3.5`
+- Typical files per milestone:
+  - `runbook.md`
+  - `commands.txt`
+  - `outputs/NN-*.txt`
+- Additional legacy raw evidence exists under `docs/evidence/*.txt`
+
+## Reflection Log
+- Canonical reflection file: `docs/reflection.md`
+
+## CI / PR / Governance
+- CI: `.github/workflows/ci.yml`
+- PR template: `.github/pull_request_template.md`
+- CODEOWNERS: `.github/CODEOWNERS`
+- Issue templates: not present before M0 changes
+- CONTRIBUTING: not found
+
+## Command/Execution Conventions
+- Scripts folder exists: `scripts/`
+- Existing validation command in repo: `python -m unittest tests/test_m3_2_api.py`
+- CI runs lint + tests via Python tooling.
+
+## Doc Format Convention
+- Documentation: primarily `.md`
+- Evidence outputs: mostly deterministic `.txt` files under `docs/evidence/.../outputs/`
