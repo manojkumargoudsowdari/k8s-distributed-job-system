@@ -22,6 +22,11 @@ Distributed systems learning repo for Kubernetes scheduling, pressure behavior, 
   - `docs/contracts/job-lifecycle.md`
   - `docs/contracts/api.md`
   - `docs/contracts/db-schema.md`
+- Operations docs:
+  - `docs/operations/local-dev.md`
+  - `docs/operations/observability.md`
+  - `docs/operations/failure-modes.md`
+  - `docs/operations/scaling-and-ha.md`
 
 ## Quickstart A: Model Serving (Phase 2)
 

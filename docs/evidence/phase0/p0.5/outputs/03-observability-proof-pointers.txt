@@ -1,0 +1,51 @@
+Observability proof pointers
+
+API metrics exposure:
+16:from pkg.job_system import Job, JobRepository, render_metrics
+142:@app.get("/healthz")
+147:@app.get("/metrics")
+149:    body, content_type = render_metrics(repo)
+
+Scheduler metrics server and refresh/sync calls:
+16:from prometheus_client import start_http_server
+24:    refresh_gauges_from_db,
+25:    sync_counters_from_db,
+89:        self.metrics_port = int(os.getenv("SCHEDULER_METRICS_PORT", "9000"))
+106:        start_http_server(self.metrics_port)
+116:        refresh_gauges_from_db(self.repo)
+117:        sync_counters_from_db(self.repo)
+
+Metric names and definitions:
+19:    "job_system_jobs_queued",
+23:    "job_system_jobs_running",
+28:    "job_system_job_success_total",
+32:    "job_system_job_fail_total",
+36:    "job_system_job_retries_total",
+41:    "job_system_job_latency_seconds",
+85:def render_metrics(repo: JobRepository) -> tuple[bytes, str]:
+
+Service/container ports for scraping/access:
+23:            - containerPort: 8000
+29:              path: /healthz
+35:              path: /healthz
+14:      port: 80
+15:      targetPort: 8000
+24:            - containerPort: 9000
+38:            - name: SCHEDULER_METRICS_PORT
+
+Logging correlation signals (job_id / tenant_id / transitions):
+services/scheduler/main.py:144:            marked = self.repo.mark_job_running(job.id)
+services/scheduler/main.py:150:                "job_running tenant_id=%s job_id=%s attempt=%s",
+services/scheduler/main.py:204:                    "missing_k8s_job_failed job_id=%s attempt=%s",
+services/scheduler/main.py:215:                LOGGER.info("job_succeeded job_id=%s", job.id)
+services/scheduler/main.py:232:                        "job_requeued_for_retry job_id=%s attempt=%s max_retries=%s next_retry_at=%s",
+services/scheduler/main.py:245:                        "job_failed job_id=%s error=%s",
+services/scheduler/main.py:295:            "job_timeout_failed job_id=%s attempt=%s",
+services/api/main.py:174:        existing = repo.get_job_by_idempotency_key(idempotency_key)
+services/api/main.py:190:                "submit_idempotent_hit job_id=%s status=%s",
+services/api/main.py:222:    LOGGER.info("submit_created job_id=%s status=%s", created.id, created.status)
+services/api/main.py:227:def get_job(job_id: UUID, repo: JobRepository = Depends(get_repository)) -> JobResponse:
+services/api/main.py:228:    job = repo.get_job(job_id)
+services/api/main.py:235:        "get_job job_id=%s status=%s attempts=%s", job.id, job.status, job.attempts
+services/api/main.py:257:    job = repo.get_job(job_id)
+services/api/main.py:276:    LOGGER.info("cancelled job_id=%s status=%s", updated.id, updated.status)

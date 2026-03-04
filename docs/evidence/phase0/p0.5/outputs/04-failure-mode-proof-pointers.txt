@@ -1,0 +1,85 @@
+Failure-mode proof pointers
+
+DB dependency and failure surface:
+services/api/main.py:125:    dsn = os.getenv("DATABASE_URL")
+services/api/main.py:127:        raise RuntimeError("DATABASE_URL is not set")
+services/api/main.py:128:    return JobRepository(dsn)
+services/scheduler/main.py:79:        dsn = os.getenv("DATABASE_URL")
+services/scheduler/main.py:81:            raise RuntimeError("DATABASE_URL is not set")
+services/scheduler/main.py:92:        self.repo = JobRepository(dsn)
+
+Scheduler restart/reconcile behavior:
+105:    def run_forever(self) -> None:
+110:                self.reconcile_once()
+115:    def reconcile_once(self) -> None:
+119:        self._reconcile_running_jobs()
+146:                LOGGER.info("dispatch_skip_state_changed job_id=%s", job.id)
+188:    def _reconcile_running_jobs(self) -> None:
+204:                    "missing_k8s_job_failed job_id=%s attempt=%s",
+306:    Scheduler().run_forever()
+
+K8s job create failure handling:
+15:from kubernetes.client import ApiException
+176:        except ApiException as exc:
+180:            LOGGER.exception("k8s_job_create_failed job_id=%s", job.id)
+181:            terminal = self.repo.update_job_status(
+182:                job.id, "FAILED", error=f"k8s job create failed: {exc.reason}"
+185:                record_terminal_transition(terminal, "FAILED")
+199:                    job.id, "FAILED", error="k8s job missing for running state"
+202:                    record_terminal_transition(terminal, "FAILED")
+240:                        job.id, "FAILED", error=error
+243:                        record_terminal_transition(terminal, "FAILED")
+285:            except ApiException:
+291:        terminal = self.repo.mark_job_terminal(job.id, "FAILED", error="timeout")
+293:            record_terminal_transition(terminal, "FAILED")
+
+Retry/backoff behavior and capped retries:
+pkg/job_system/db.py:35:        max_retries: int = 0,
+pkg/job_system/db.py:50:            priority, max_retries, backoff_seconds, timeout_seconds, status, created_at, queued_at, next_retry_at, updated_at
+pkg/job_system/db.py:54:            %(env)s, %(resources)s, %(priority)s, %(max_retries)s,
+pkg/job_system/db.py:56:            'QUEUED', %(created_at)s, %(queued_at)s, %(next_retry_at)s, %(updated_at)s
+pkg/job_system/db.py:71:            "max_retries": max_retries,
+pkg/job_system/db.py:76:            "next_retry_at": now,
+pkg/job_system/db.py:127:          AND COALESCE(next_retry_at, queued_at, created_at) <= %(now)s
+pkg/job_system/db.py:128:        ORDER BY priority DESC, COALESCE(next_retry_at, queued_at, created_at) ASC, created_at ASC
+pkg/job_system/db.py:192:    def mark_job_for_retry(
+pkg/job_system/db.py:193:        self, job_id: UUID, *, error: str, next_retry_at: datetime
+pkg/job_system/db.py:201:            next_retry_at = %(next_retry_at)s,
+pkg/job_system/db.py:213:                    "next_retry_at": next_retry_at,
+pkg/job_system/db.py:230:            next_retry_at = NULL,
+pkg/job_system/db.py:280:        max_retries=row["max_retries"],
+pkg/job_system/db.py:291:        next_retry_at=row.get("next_retry_at"),
+pkg/job_system/db.py:296:def compute_next_retry_at(*, attempts_completed: int, backoff_seconds: int) -> datetime:
+services/scheduler/main.py:21:    compute_next_retry_at,
+services/scheduler/main.py:220:                if job.attempts < job.max_retries:
+services/scheduler/main.py:221:                    next_retry_at = compute_next_retry_at(
+services/scheduler/main.py:225:                    self.repo.mark_job_for_retry(
+services/scheduler/main.py:228:                        next_retry_at=next_retry_at,
+services/scheduler/main.py:232:                        "job_requeued_for_retry job_id=%s attempt=%s max_retries=%s next_retry_at=%s",
+services/scheduler/main.py:235:                        job.max_retries,
+services/scheduler/main.py:236:                        next_retry_at.isoformat(),
+
+Timeout/stuck running handling:
+194:            if self._is_timed_out(job):
+195:                self._handle_timeout(job, k8s_job)
+199:                    job.id, "FAILED", error="k8s job missing for running state"
+271:    def _is_timed_out(job: Job) -> bool:
+277:    def _handle_timeout(self, job: Job, k8s_job: client.V1Job | None) -> None:
+291:        terminal = self.repo.mark_job_terminal(job.id, "FAILED", error="timeout")
+
+Tenant quota blocking (expected non-bug):
+pkg/job_system/db.py:136:    def count_running_jobs_by_tenant(self, tenant_id: str) -> int:
+services/scheduler/main.py:90:        self.tenant_max_running = int(os.getenv("TENANT_MAX_RUNNING", "2"))
+services/scheduler/main.py:127:                running_count = self.repo.count_running_jobs_by_tenant(job.tenant_id)
+services/scheduler/main.py:132:                    "dispatch_skipped_tenant_quota tenant_id=%s running=%s limit=%s job_id=%s",
+k8s/job-system/scheduler-deployment.yaml:36:            - name: TENANT_MAX_RUNNING
+
+Idempotency conflict behavior (API):
+174:        existing = repo.get_job_by_idempotency_key(idempotency_key)
+178:                    status_code=status.HTTP_409_CONFLICT,
+179:                    detail="Idempotency-Key conflict: key already used by a different tenant",
+186:                    status_code=status.HTTP_409_CONFLICT,
+187:                    detail="Idempotency-Key conflict: request body differs from existing job",
+219:            status_code=status.HTTP_409_CONFLICT,
+220:            detail="Idempotency-Key conflict: request body differs from existing job",
+266:            status_code=status.HTTP_409_CONFLICT,

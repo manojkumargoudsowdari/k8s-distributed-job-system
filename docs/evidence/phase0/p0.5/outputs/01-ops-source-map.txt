@@ -1,0 +1,65 @@
+Operational source map (inspected before docs drafting)
+
+Branch/context commands:
+- git rev-parse --abbrev-ref HEAD
+- git status --short --branch
+
+Primary runbook source:
+- README.md
+  - Quickstart B: Distributed Job System (build/load images, apply manifests, apply migrations, submit jobs, verify metrics/logs)
+
+Runtime manifests:
+- k8s/job-system/postgres.yaml
+- k8s/job-system/api-deployment.yaml
+- k8s/job-system/api-service.yaml
+- k8s/job-system/scheduler-deployment.yaml
+- k8s/job-system/scheduler-role.yaml
+- k8s/job-system/scheduler-rolebinding.yaml
+- k8s/job-system/scheduler-serviceaccount.yaml
+
+Service/runtime code for behavior under failure:
+- services/scheduler/main.py
+  - retry/backoff: compute_next_retry_at + mark_job_for_retry path
+  - timeout handling: _is_timed_out + _handle_timeout
+  - restart recovery: reconcile loop scans RUNNING jobs and marks failed when backing k8s job missing
+  - tenant quota: TENANT_MAX_RUNNING gate in _dispatch_queued_jobs
+  - scheduler metrics endpoint via prometheus_client.start_http_server
+- services/api/main.py
+  - idempotency conflict behavior
+  - tenant header requirement and validation
+  - API /metrics and /healthz endpoints
+
+Persistence + reliability logic:
+- pkg/job_system/db.py
+  - guarded transitions with WHERE status predicates
+  - dispatchable query and tenant running counts
+  - triangular backoff helper compute_next_retry_at
+
+Observability sources:
+- pkg/job_system/metrics.py (job_system_* gauges/counters/histogram)
+- services/api/main.py (/metrics exposure)
+- services/scheduler/main.py (metrics server on SCHEDULER_METRICS_PORT, log messages with job_id/tenant_id)
+
+CI commands used for lint/tests baseline:
+- .github/workflows/ci.yml
+  - python -m ruff check .
+  - python -m unittest discover -s tests -p "test_*.py"
+
+Discovered local/dev dependencies:
+- kind
+- kubectl
+- docker
+- python 3.12 (Dockerfiles and CI)
+
+Discovered local/dev ports/endpoints:
+- API container port: 8000 (service port 80 -> target 8000)
+- Scheduler metrics port: 9000
+- Postgres service port: 5432
+- API endpoints: /healthz, /metrics, /jobs, /jobs/{job_id}, /jobs/{job_id}/cancel
+
+Discovered migration apply commands in repo:
+- kubectl cp db/migrations/*.sql default/$DB_POD:/tmp/*.sql
+- kubectl exec $DB_POD -- psql -U jobs -d jobs -f /tmp/<migration>.sql
+
+No docker-compose or Makefile found.
+No .env.example found.
