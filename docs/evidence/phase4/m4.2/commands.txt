@@ -1,0 +1,40 @@
+# Commands for phase4/m4.2
+
+# 0) Branch setup
+
+git status --short --branch
+git rev-parse --abbrev-ref HEAD
+
+# 1) Inspect scheduler selection flow before edits
+
+Get-Content services/scheduler/main.py
+Get-Content pkg/job_system/db.py
+Get-ChildItem tests | Select-Object Name
+rg -n "list_dispatchable_jobs|count_running_jobs_by_tenant|TENANT_MAX_RUNNING|dispatch|cursor|order|next_retry_at|created_at" services/scheduler/main.py pkg/job_system/db.py
+
+# 2) Initialize evidence skeleton
+
+bash scripts/evidence_init.sh phase4 m4.2
+
+# 3) Implement fairness + tests
+
+# Edited:
+# - services/scheduler/main.py
+# - tests/test_m4_2_fair_scheduling.py
+
+# 4) Validate tests/lint
+
+python -m unittest tests.test_m4_2_fair_scheduling -v
+python -m unittest discover -s tests -p "test_*.py"
+python -m ruff check .
+
+# 5) Capture proof outputs
+
+# outputs/02-round-robin-proof.txt
+# outputs/03-no-starvation-proof.txt
+# outputs/04-quota-interaction-proof.txt
+# outputs/05-tests.txt
+
+# 6) Evidence validation
+
+bash scripts/evidence_check.sh phase4 m4.2

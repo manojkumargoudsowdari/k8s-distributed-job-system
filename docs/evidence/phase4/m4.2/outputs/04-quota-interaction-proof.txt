@@ -1,0 +1,3 @@
+dispatch_order= ['tenant-b']
+tenant_a_running_count= 1
+tenant_b_running_count= 1

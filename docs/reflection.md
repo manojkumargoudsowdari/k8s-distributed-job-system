@@ -1040,3 +1040,39 @@ Evidence:
 - `docs/evidence/phase0/p0.6/outputs/02-diagram-doc.txt`
 - `docs/evidence/phase0/p0.6/outputs/03-link-check.txt`
 - `docs/evidence/phase0/p0.6/outputs/04-evidence-check.txt`
+
+## 26) Phase 4 M4.2 - Fair Scheduling Across Tenants
+
+What changed:
+
+- Updated scheduler dispatch selection:
+  - `services/scheduler/main.py`
+  - Added round-robin ordering across tenant buckets for dispatchable candidates.
+  - Added in-process fairness cursor (`_rr_last_tenant`) to rotate first-tenant selection across reconcile loops.
+  - Added bounded candidate window multiplier (`SCHEDULER_FAIR_CANDIDATE_MULTIPLIER`, default `5`) to reduce starvation risk in single-tenant floods.
+- Added fairness unit tests:
+  - `tests/test_m4_2_fair_scheduling.py`
+
+What was proven:
+
+- Round-robin dispatch alternates tenants when both are eligible.
+- Flood from one tenant does not starve another tenant within the eligible candidate window.
+- Tenant quota enforcement from M4.1 remains active; over-limit tenant is skipped and other tenants continue dispatch.
+- Deterministic ordering is preserved for fixed input and cursor state.
+- Lint and tests pass.
+
+Fairness limitations (current reality):
+
+- RR cursor is in-memory in a single scheduler process.
+- Multi-scheduler fairness/coordination is not addressed yet (requires M4.x HA coordination strategy).
+- Fairness applies to the bounded dispatchable candidate set, not to the entire table in one query.
+
+Evidence:
+
+- `docs/evidence/phase4/m4.2/runbook.md`
+- `docs/evidence/phase4/m4.2/outputs/01-scheduler-selection-map.txt`
+- `docs/evidence/phase4/m4.2/outputs/02-round-robin-proof.txt`
+- `docs/evidence/phase4/m4.2/outputs/03-no-starvation-proof.txt`
+- `docs/evidence/phase4/m4.2/outputs/04-quota-interaction-proof.txt`
+- `docs/evidence/phase4/m4.2/outputs/05-tests.txt`
+- `docs/evidence/phase4/m4.2/outputs/06-evidence-check.txt`

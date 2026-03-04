@@ -1,0 +1,40 @@
+M4.2 inspection: scheduler selection and ordering map
+
+Branch setup:
+- git status --short --branch
+- git rev-parse --abbrev-ref HEAD
+
+Key files inspected:
+- services/scheduler/main.py
+- pkg/job_system/db.py
+- tests/test_m4_1_scheduler_quota.py
+
+Current scheduler selection path:
+- services/scheduler/main.py::Scheduler._dispatch_queued_jobs
+  - calls repo.list_dispatchable_jobs(limit=self.dispatch_batch_size)
+  - iterates returned jobs in DB query order
+  - enforces tenant quota via repo.count_running_jobs_by_tenant and TENANT_MAX_RUNNING
+  - marks RUNNING using repo.mark_job_running(job.id)
+
+Current quota enforcement (M4.1):
+- services/scheduler/main.py
+  - env: TENANT_MAX_RUNNING (default 2)
+  - log marker: dispatch_skipped_tenant_quota
+- pkg/job_system/db.py::count_running_jobs_by_tenant
+  - SQL: SELECT COUNT(*) WHERE status='RUNNING' AND tenant_id = ...
+
+Current job ordering:
+- pkg/job_system/db.py::list_dispatchable_jobs
+  - WHERE status='QUEUED' AND COALESCE(next_retry_at, queued_at, created_at) <= now
+  - ORDER BY priority DESC,
+            COALESCE(next_retry_at, queued_at, created_at) ASC,
+            created_at ASC
+  - LIMIT bounded by provided limit
+
+Current cursor/pointer notion:
+- No tenant round-robin cursor exists in scheduler.
+- Selection is currently pure DB-order scan of dispatchable rows.
+
+Fairness implication pre-M4.2:
+- Tenant fairness is not guaranteed beyond whatever emerges from DB ordering.
+- Single tenant flood can dominate dispatch order within bounded candidate windows.

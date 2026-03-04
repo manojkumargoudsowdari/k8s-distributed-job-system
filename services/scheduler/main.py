@@ -85,9 +85,14 @@ class Scheduler:
             os.getenv("SCHEDULER_POLL_INTERVAL_SECONDS", "3")
         )
         self.dispatch_batch_size = int(os.getenv("SCHEDULER_DISPATCH_BATCH_SIZE", "5"))
+        self.dispatch_candidate_multiplier = int(
+            os.getenv("SCHEDULER_FAIR_CANDIDATE_MULTIPLIER", "5")
+        )
         self.running_scan_limit = int(os.getenv("SCHEDULER_RUNNING_SCAN_LIMIT", "50"))
         self.metrics_port = int(os.getenv("SCHEDULER_METRICS_PORT", "9000"))
         self.tenant_max_running = int(os.getenv("TENANT_MAX_RUNNING", "2"))
+        # In-memory RR cursor; deterministic for single-scheduler operation.
+        self._rr_last_tenant: str | None = None
 
         self.repo = JobRepository(dsn)
         self.batch_api = self._load_batch_api()
@@ -119,9 +124,19 @@ class Scheduler:
         self._reconcile_running_jobs()
 
     def _dispatch_queued_jobs(self) -> None:
-        queued_jobs = self.repo.list_dispatchable_jobs(limit=self.dispatch_batch_size)
+        candidate_multiplier = max(
+            1, int(getattr(self, "dispatch_candidate_multiplier", 1))
+        )
+        candidate_limit = max(
+            self.dispatch_batch_size, self.dispatch_batch_size * candidate_multiplier
+        )
+        queued_jobs = self.repo.list_dispatchable_jobs(limit=candidate_limit)
+        queued_jobs = self._order_dispatchable_jobs_round_robin(queued_jobs)
         running_by_tenant: dict[str, int] = {}
+        dispatched = 0
         for job in queued_jobs:
+            if dispatched >= self.dispatch_batch_size:
+                break
             running_count = running_by_tenant.get(job.tenant_id)
             if running_count is None:
                 running_count = self.repo.count_running_jobs_by_tenant(job.tenant_id)
@@ -146,12 +161,42 @@ class Scheduler:
                 LOGGER.info("dispatch_skip_state_changed job_id=%s", job.id)
                 continue
             running_by_tenant[job.tenant_id] = running_count + 1
+            self._rr_last_tenant = marked.tenant_id
+            dispatched += 1
             LOGGER.info(
                 "job_running tenant_id=%s job_id=%s attempt=%s",
                 marked.tenant_id,
                 marked.id,
                 marked.attempts,
             )
+
+    def _order_dispatchable_jobs_round_robin(self, jobs: list[Job]) -> list[Job]:
+        if not jobs:
+            return []
+
+        groups: dict[str, list[Job]] = {}
+        tenant_order: list[str] = []
+        for job in jobs:
+            if job.tenant_id not in groups:
+                groups[job.tenant_id] = []
+                tenant_order.append(job.tenant_id)
+            groups[job.tenant_id].append(job)
+
+        cursor = getattr(self, "_rr_last_tenant", None)
+        if cursor in tenant_order:
+            idx = tenant_order.index(cursor)
+            tenant_order = tenant_order[idx + 1 :] + tenant_order[: idx + 1]
+
+        ordered: list[Job] = []
+        pending = True
+        while pending:
+            pending = False
+            for tenant in tenant_order:
+                bucket = groups[tenant]
+                if bucket:
+                    ordered.append(bucket.pop(0))
+                    pending = True
+        return ordered
 
     def _ensure_k8s_job_exists(self, job: Job, attempt: int) -> bool:
         selector = f"job-system/job-id={job.id},job-system/attempt={attempt}"
