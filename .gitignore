@@ -4,5 +4,3 @@ __pycache__/
 .env
 .env.*
 !.env.example
-phase3.txt
-/phase4.txt
