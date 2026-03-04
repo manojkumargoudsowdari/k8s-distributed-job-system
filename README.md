@@ -28,6 +28,8 @@ Distributed systems learning repo for Kubernetes scheduling, pressure behavior, 
   - `docs/operations/observability.md`
   - `docs/operations/failure-modes.md`
   - `docs/operations/scaling-and-ha.md`
+- Achievements:
+  - `docs/achievement/phase-achievements.md`
 
 ## Quickstart A: Model Serving (Phase 2)
 
