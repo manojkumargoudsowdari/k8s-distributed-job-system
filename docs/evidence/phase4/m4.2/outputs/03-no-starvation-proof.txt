@@ -1,0 +1,2 @@
+dispatch_order= ['tenant-a', 'tenant-b', 'tenant-a', 'tenant-b']
+tenant_b_dispatched= True

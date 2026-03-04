@@ -1,0 +1,2 @@
+dispatch_order= ['tenant-a', 'tenant-b', 'tenant-a', 'tenant-b']
+expected_prefix= ['tenant-a', 'tenant-b', 'tenant-a', 'tenant-b']
