@@ -938,3 +938,27 @@ Evidence:
 - `docs/evidence/phase0/p0.2/outputs/02-job-lifecycle-contract.txt`
 - `docs/evidence/phase0/p0.2/outputs/03-transition-proof-pointers.txt`
 - `docs/evidence/phase0/p0.2/outputs/04-evidence-check.txt`
+
+## 22) Phase 0 P0.3 - API Contract + Tenant Model
+
+What changed:
+
+- Added API contract document:
+  - `docs/contracts/api.md`
+- Added README navigation link:
+  - `docs/contracts/api.md`
+
+What was proven:
+
+- API endpoints and request/response models were enumerated directly from `services/api/main.py`.
+- Tenant header extraction and validation (`X-Tenant-Id`) were mapped with deterministic error messages.
+- Error model was documented from actual FastAPI `HTTPException` usage and validation constraints.
+- Evidence pack for P0.3 passes `scripts/evidence_check.sh phase0 p0.3`.
+
+Evidence:
+
+- `docs/evidence/phase0/p0.3/runbook.md`
+- `docs/evidence/phase0/p0.3/outputs/01-api-source-map.txt`
+- `docs/evidence/phase0/p0.3/outputs/02-api-contract.txt`
+- `docs/evidence/phase0/p0.3/outputs/03-error-model-proof.txt`
+- `docs/evidence/phase0/p0.3/outputs/04-evidence-check.txt`

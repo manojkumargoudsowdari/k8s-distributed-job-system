@@ -1,0 +1,42 @@
+# Commands for phase0/p0.3
+
+# Branch setup
+
+git rev-parse --abbrev-ref HEAD
+git status --short --branch
+
+# Initialize evidence skeleton
+
+bash scripts/evidence_init.sh phase0 p0.3
+
+# Inspect API sources
+
+Get-Content services/api/main.py
+Get-Content Dockerfile.api
+Get-Content k8s/job-system/api-deployment.yaml
+Get-Content k8s/job-system/api-service.yaml
+rg -n "@app\.|class JobSpec|class JobSubmitResponse|class JobResponse|class CancelResponse|X-Tenant-Id|Idempotency-Key|HTTPException|FastAPI\(" services/api/main.py
+
+# Generated source-map evidence
+
+# docs/evidence/phase0/p0.3/outputs/01-api-source-map.txt
+
+# Docs updates
+
+# Edited:
+# - docs/contracts/api.md
+# - README.md
+# - docs/reflection.md
+
+# Capture contract + links + error-proof pointers
+
+rg -n "docs/contracts/api.md" README.md
+rg -n "X-Tenant-Id|TENANT_ID_PATTERN|header is required|must match" services/api/main.py
+rg -n "HTTPException|status_code=status\.HTTP_" services/api/main.py
+rg -n "Field\(|Query\(" services/api/main.py
+rg -n "Idempotency-Key conflict" services/api/main.py
+rg -n "Job not found|Only QUEUED jobs can be canceled" services/api/main.py
+
+# Evidence check
+
+bash scripts/evidence_check.sh phase0 p0.3
