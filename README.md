@@ -207,6 +207,20 @@ Expected: log lines contain `job_id=...` for submit, dispatch, retries, and term
 - Cancel endpoint currently supports `QUEUED` jobs only.
 - Metrics counters are synchronized from DB totals; semantics depend on retained DB history.
 
+## Live Demo (Phase 4 Closeout Harness)
+
+Run one command from repo root:
+
+```bash
+bash scripts/demo_phase4_closeout.sh
+```
+
+Expected generated outputs:
+- `docs/evidence/phase4/m4.demo/outputs/03-tenant-isolation.txt`
+- `docs/evidence/phase4/m4.demo/outputs/04-fairness-quota.txt`
+- `docs/evidence/phase4/m4.demo/outputs/05-rate-limit.txt`
+- `docs/evidence/phase4/m4.demo/outputs/06-metrics-scrape.txt`
+
 ## Phase 2 Completion Evidence
 
 - Assessment narrative:

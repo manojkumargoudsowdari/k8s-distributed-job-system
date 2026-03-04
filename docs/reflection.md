@@ -1268,3 +1268,44 @@ Evidence:
 - `docs/evidence/phase4/m4.closeout/outputs/05-e2e-fairness-and-quota.txt`
 - `docs/evidence/phase4/m4.closeout/outputs/06-e2e-rate-limit.txt`
 - `docs/evidence/phase4/m4.closeout/outputs/07-e2e-metrics-scrape.txt`
+
+## 31) Phase 4 M4.Demo - Live Demo Harness
+
+What changed:
+
+- Added one-command demo harness script:
+  - `scripts/demo_phase4_closeout.sh`
+  - Generates deterministic demo outputs under `docs/evidence/phase4/m4.demo/outputs/`.
+  - Includes fail-fast prerequisite checks and idempotent output refresh.
+- Added compact live demo evidence pack:
+  - `docs/evidence/phase4/m4.demo/runbook.md`
+  - `docs/evidence/phase4/m4.demo/commands.txt`
+  - `docs/evidence/phase4/m4.demo/outputs/*`
+- Added README pointer:
+  - `README.md` section: **Live Demo (Phase 4 Closeout Harness)**
+  - Includes one command and expected output files.
+
+What behavior was proven:
+
+- Live harness reproduces core Phase 4 behaviors from a single command:
+  - tenant isolation (`404` on cross-tenant read)
+  - fairness + quota observability (alternating dispatch + quota block signals)
+  - rate limiting (`429` + `Retry-After` + counter increment)
+  - API and scheduler metrics scrape excerpts with non-zero values
+- Evidence pack shape validation passes:
+  - `scripts/evidence_check.sh phase4 m4.demo`
+
+Notes:
+
+- This milestone is demo/verification packaging only; API/scheduler/db core logic remains unchanged.
+
+Evidence:
+
+- `docs/evidence/phase4/m4.demo/runbook.md`
+- `docs/evidence/phase4/m4.demo/outputs/01-demo-surface-map.txt`
+- `docs/evidence/phase4/m4.demo/outputs/02-demo-run.txt`
+- `docs/evidence/phase4/m4.demo/outputs/03-tenant-isolation.txt`
+- `docs/evidence/phase4/m4.demo/outputs/04-fairness-quota.txt`
+- `docs/evidence/phase4/m4.demo/outputs/05-rate-limit.txt`
+- `docs/evidence/phase4/m4.demo/outputs/06-metrics-scrape.txt`
+- `docs/evidence/phase4/m4.demo/outputs/07-evidence-check.txt`
