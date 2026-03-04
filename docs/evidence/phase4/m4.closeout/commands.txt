@@ -1,0 +1,38 @@
+# Commands for phase4/m4.closeout
+
+# 0) Branch setup
+git status
+git rev-parse --abbrev-ref HEAD
+
+# 1) Initialize evidence skeleton
+bash scripts/evidence_init.sh phase4 m4.closeout
+
+# 2) Inspect run surface
+Get-Content README.md
+Get-Content docs/operations/local-dev.md
+Get-Content docs/operations/observability.md
+rg -n "Quickstart B|migrations|TENANT_MAX_RUNNING|TENANT_SUBMIT|SCHEDULER_METRICS_PORT|port-forward|metrics" README.md docs/operations/local-dev.md docs/operations/observability.md docs/operations/scaling-and-ha.md
+
+# 3) Required Phase 4 evidence checks
+bash scripts/evidence_check.sh phase4 m4.1 > docs/evidence/phase4/m4.closeout/outputs/02-phase4-evidence-checks.txt 2>&1
+bash scripts/evidence_check.sh phase4 m4.2 >> docs/evidence/phase4/m4.closeout/outputs/02-phase4-evidence-checks.txt 2>&1
+bash scripts/evidence_check.sh phase4 m4.3 >> docs/evidence/phase4/m4.closeout/outputs/02-phase4-evidence-checks.txt 2>&1
+bash scripts/evidence_check.sh phase4 m4.4 >> docs/evidence/phase4/m4.closeout/outputs/02-phase4-evidence-checks.txt 2>&1
+bash scripts/evidence_check.sh phase4 m4.5 >> docs/evidence/phase4/m4.closeout/outputs/02-phase4-evidence-checks.txt 2>&1
+
+# 4) Required lint + test pass
+python -m ruff check . > docs/evidence/phase4/m4.closeout/outputs/03-lint-and-tests.txt 2>&1
+python -m unittest discover -s tests -p "test_*.py" >> docs/evidence/phase4/m4.closeout/outputs/03-lint-and-tests.txt 2>&1
+
+# 5) E2E proofs (lightweight deterministic harnesses)
+# 5a) tenant isolation proof -> outputs/04-e2e-tenant-isolation.txt
+# 5b) fairness + quota proof -> outputs/05-e2e-fairness-and-quota.txt
+# 5c) rate limit proof -> outputs/06-e2e-rate-limit.txt
+# 5d) metrics scrape proof (API and scheduler metrics port) -> outputs/07-e2e-metrics-scrape.txt
+
+# Notes for the harness runs:
+# - Set logical verification knobs:
+#   TENANT_MAX_RUNNING=1
+#   TENANT_SUBMIT_RPS=1
+#   TENANT_SUBMIT_BURST=1
+#   SCHEDULER_METRICS_PORT=9000 (or local probe port in harness)

@@ -1226,3 +1226,45 @@ Evidence:
 - `docs/evidence/phase4/m4.5/outputs/05-logs-correlation-tenant.txt`
 - `docs/evidence/phase4/m4.5/outputs/06-tests.txt`
 - `docs/evidence/phase4/m4.5/outputs/07-evidence-check.txt`
+
+## 30) Phase 4 M4.Closeout - End-to-End Platform Verification
+
+What changed:
+
+- Added closeout verification evidence pack (no feature/code behavior changes):
+  - `docs/evidence/phase4/m4.closeout/runbook.md`
+  - `docs/evidence/phase4/m4.closeout/commands.txt`
+  - `docs/evidence/phase4/m4.closeout/outputs/*`
+- Captured full Phase 4 verification chain:
+  - evidence checks for `m4.1` through `m4.5`
+  - lint + full unit tests
+  - deterministic end-to-end proofs for tenant isolation, fairness+quota, rate limiting, and metrics scrape.
+
+What was verified:
+
+- Tenant isolation:
+  - cross-tenant `GET /jobs/{id}` returns `404`, owner tenant can read successfully.
+- Fairness + quota:
+  - dispatch order alternates across tenants in fair scenario.
+  - quota blocks are observable in logs/metrics with `TENANT_MAX_RUNNING=1`.
+- Rate limiting:
+  - burst submit for single tenant produces deterministic `429` with `Retry-After`.
+  - rate-limit counters increment.
+- Observability:
+  - API and scheduler metrics surfaces expose required Phase 4 metric set.
+  - closeout scrape shows non-zero values for key quota/dispatch/rate-limit metrics.
+
+Phase 4 completion statement:
+
+- Phase 4 (`M4.1` through `M4.5`) is verified end-to-end with reproducible evidence and no additional feature deltas in closeout.
+
+Evidence:
+
+- `docs/evidence/phase4/m4.closeout/runbook.md`
+- `docs/evidence/phase4/m4.closeout/outputs/01-run-surface-map.txt`
+- `docs/evidence/phase4/m4.closeout/outputs/02-phase4-evidence-checks.txt`
+- `docs/evidence/phase4/m4.closeout/outputs/03-lint-and-tests.txt`
+- `docs/evidence/phase4/m4.closeout/outputs/04-e2e-tenant-isolation.txt`
+- `docs/evidence/phase4/m4.closeout/outputs/05-e2e-fairness-and-quota.txt`
+- `docs/evidence/phase4/m4.closeout/outputs/06-e2e-rate-limit.txt`
+- `docs/evidence/phase4/m4.closeout/outputs/07-e2e-metrics-scrape.txt`

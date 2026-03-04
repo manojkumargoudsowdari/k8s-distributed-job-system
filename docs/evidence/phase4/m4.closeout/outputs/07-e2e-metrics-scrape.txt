@@ -1,0 +1,13 @@
+API_METRICS:
+job_system_jobs_queued 2.0
+job_system_jobs_running 2.0
+job_system_scheduler_dispatch_decisions_total{decision="dispatched"} 1.0
+job_system_scheduler_quota_blocks_total 1.0
+job_system_api_submit_rate_limited_total 1.0
+
+SCHEDULER_METRICS_PORT_SCRAPE:
+job_system_jobs_queued 2.0
+job_system_jobs_running 2.0
+job_system_scheduler_dispatch_decisions_total{decision="dispatched"} 1.0
+job_system_scheduler_quota_blocks_total 1.0
+job_system_api_submit_rate_limited_total 1.0
