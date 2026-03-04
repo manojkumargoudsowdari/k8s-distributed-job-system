@@ -1,0 +1,8 @@
+# 03 API Tenant Validation
+MISSING_HEADER_STATUS 400
+MISSING_HEADER_BODY {'detail': 'X-Tenant-Id header is required'}
+WITH_HEADER_STATUS 201
+WITH_HEADER_BODY {'job_id': 'a73c79c9-dae6-4001-aae4-2659f57ede6b', 'status': 'QUEUED'}
+GET_JOB_STATUS 200
+GET_JOB_BODY {'id': 'a73c79c9-dae6-4001-aae4-2659f57ede6b', 'tenant_id': 'tenant_a', 'idempotency_key': None, 'queue': 'default', 'image': 'busybox:1.36', 'command': ['sh', '-c'], 'args': ['echo ok'], 'env': {}, 'resources': {}, 'priority': 0, 'max_retries': 0, 'backoff_seconds': 5, 'timeout_seconds': None, 'status': 'QUEUED', 'attempts': 0, 'desired_status': None, 'last_error': None, 'created_at': '2026-03-04T19:54:17.178138+00:00', 'queued_at': '2026-03-04T19:54:17.178138+00:00', 'started_at': None, 'finished_at': None, 'next_retry_at': '2026-03-04T19:54:17.178138+00:00', 'updated_at': '2026-03-04T19:54:17.178138+00:00'}
+DB_JOB_TENANT tenant_a

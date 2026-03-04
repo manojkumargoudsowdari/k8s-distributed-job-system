@@ -1,0 +1,41 @@
+# Branch setup
+git checkout -b feature/m4.1-tenant-identity-quotas
+git status
+git rev-parse --abbrev-ref HEAD
+
+# Inspection
+Get-ChildItem -Recurse -Depth 4 | Select-Object FullName
+Get-Content services/api/main.py
+Get-Content services/scheduler/main.py
+Get-Content pkg/job_system/db.py
+Get-Content pkg/job_system/models.py
+Get-ChildItem tests -Recurse | Select-Object FullName
+
+# Initialize evidence pack
+wsl bash -lc "cd /mnt/d/Work/Code/Kubernetes/k8s-distributed-job-system && bash scripts/evidence_init.sh phase4 m4.1"
+
+# Local DB migration proof (Docker Postgres)
+docker rm -f m41-postgres
+docker run -d --name m41-postgres -e POSTGRES_USER=jobs -e POSTGRES_PASSWORD=jobs -e POSTGRES_DB=jobs -p 55432:5432 postgres:16-alpine
+docker cp db/migrations/001_create_jobs.sql m41-postgres:/tmp/001.sql
+docker cp db/migrations/002_m3_4_reliability.sql m41-postgres:/tmp/002.sql
+docker cp db/migrations/003_m4_1_tenant_identity.sql m41-postgres:/tmp/003.sql
+docker exec m41-postgres psql -U jobs -d jobs -f /tmp/001.sql
+docker exec m41-postgres psql -U jobs -d jobs -f /tmp/002.sql
+docker exec m41-postgres psql -U jobs -d jobs -f /tmp/003.sql
+docker exec m41-postgres psql -U jobs -d jobs -c "\d+ jobs"
+docker exec m41-postgres psql -U jobs -d jobs -c "SELECT indexname, indexdef FROM pg_indexes WHERE tablename='jobs' AND indexname LIKE 'idx_jobs_tenant%';"
+
+# API tenant validation proof
+python - <<'PY'
+# (script used to hit POST /jobs with and without X-Tenant-Id and read tenant_id back)
+PY
+
+# Scheduler quota proof (TENANT_MAX_RUNNING=1 behavior)
+python - <<'PY'
+# (script used to submit two same-tenant jobs and dispatch once with quota gate)
+PY
+
+# Validation commands
+python -m ruff check .
+python -m unittest discover -s tests -p "test_*.py"

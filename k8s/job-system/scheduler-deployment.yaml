@@ -33,6 +33,8 @@ spec:
               value: "5"
             - name: SCHEDULER_RUNNING_SCAN_LIMIT
               value: "50"
+            - name: TENANT_MAX_RUNNING
+              value: "2"
             - name: SCHEDULER_METRICS_PORT
               value: "9000"
           resources:

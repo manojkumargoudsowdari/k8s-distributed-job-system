@@ -9,6 +9,7 @@ from uuid import UUID
 @dataclass
 class Job:
     id: UUID
+    tenant_id: str
     image: str
     command: list[str]
     args: list[str]

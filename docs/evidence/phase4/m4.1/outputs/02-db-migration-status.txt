@@ -1,0 +1,75 @@
+# 02 DB Migration Status
+
+## Docker postgres container
+a2b7866dfff99c54426118fd6d3bcaf2563aa27ae618b62409dc570767ac2751
+
+## Apply migration 001
+CREATE TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+
+## Apply migration 002
+ALTER TABLE
+UPDATE 0
+CREATE INDEX
+
+## Apply migration 003
+ALTER TABLE
+UPDATE 0
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+
+## Schema proof
+                                                            Table "public.jobs"
+     Column      |           Type           | Collation | Nullable |     Default     | Storage  | Compression | Stats target | Description 
+-----------------+--------------------------+-----------+----------+-----------------+----------+-------------+--------------+-------------
+ id              | uuid                     |           | not null |                 | plain    |             |              | 
+ idempotency_key | text                     |           |          |                 | extended |             |              | 
+ queue           | text                     |           | not null | 'default'::text | extended |             |              | 
+ image           | text                     |           | not null |                 | extended |             |              | 
+ command         | text[]                   |           | not null | '{}'::text[]    | extended |             |              | 
+ args            | text[]                   |           | not null | '{}'::text[]    | extended |             |              | 
+ env             | jsonb                    |           | not null | '{}'::jsonb     | extended |             |              | 
+ resources       | jsonb                    |           | not null | '{}'::jsonb     | extended |             |              | 
+ priority        | integer                  |           | not null | 0               | plain    |             |              | 
+ max_retries     | integer                  |           | not null | 0               | plain    |             |              | 
+ backoff_seconds | integer                  |           | not null | 5               | plain    |             |              | 
+ timeout_seconds | integer                  |           |          |                 | plain    |             |              | 
+ status          | text                     |           | not null |                 | extended |             |              | 
+ attempts        | integer                  |           | not null | 0               | plain    |             |              | 
+ desired_status  | text                     |           |          |                 | extended |             |              | 
+ last_error      | text                     |           |          |                 | extended |             |              | 
+ created_at      | timestamp with time zone |           | not null | now()           | plain    |             |              | 
+ queued_at       | timestamp with time zone |           |          |                 | plain    |             |              | 
+ started_at      | timestamp with time zone |           |          |                 | plain    |             |              | 
+ finished_at     | timestamp with time zone |           |          |                 | plain    |             |              | 
+ updated_at      | timestamp with time zone |           | not null | now()           | plain    |             |              | 
+ next_retry_at   | timestamp with time zone |           |          |                 | plain    |             |              | 
+ tenant_id       | text                     |           | not null |                 | extended |             |              | 
+Indexes:
+    "jobs_pkey" PRIMARY KEY, btree (id)
+    "idx_jobs_dispatch_ready" btree (status, next_retry_at)
+    "idx_jobs_queue_status" btree (queue, status)
+    "idx_jobs_status_created_at" btree (status, created_at DESC)
+    "idx_jobs_tenant_status" btree (tenant_id, status)
+    "idx_jobs_tenant_status_created" btree (tenant_id, status, created_at)
+    "idx_jobs_updated_at" btree (updated_at DESC)
+    "jobs_idempotency_key_key" UNIQUE CONSTRAINT, btree (idempotency_key)
+Check constraints:
+    "jobs_status_check" CHECK (status = ANY (ARRAY['QUEUED'::text, 'RUNNING'::text, 'SUCCEEDED'::text, 'FAILED'::text, 'CANCELED'::text]))
+Referenced by:
+    TABLE "job_attempts" CONSTRAINT "job_attempts_job_id_fkey" FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE
+Access method: heap
+
+
+## Tenant indexes proof
+           indexname            |                                                indexdef                                                
+--------------------------------+--------------------------------------------------------------------------------------------------------
+ idx_jobs_tenant_status         | CREATE INDEX idx_jobs_tenant_status ON public.jobs USING btree (tenant_id, status)
+ idx_jobs_tenant_status_created | CREATE INDEX idx_jobs_tenant_status_created ON public.jobs USING btree (tenant_id, status, created_at)
+(2 rows)
+

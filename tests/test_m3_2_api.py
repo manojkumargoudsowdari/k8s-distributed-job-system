@@ -19,6 +19,7 @@ class FakeRepository:
     def create_job(
         self,
         *,
+        tenant_id: str,
         image: str,
         command: list[str] | None = None,
         args: list[str] | None = None,
@@ -34,6 +35,7 @@ class FakeRepository:
         now = datetime.now(timezone.utc)
         job = Job(
             id=uuid4(),
+            tenant_id=tenant_id,
             idempotency_key=idempotency_key,
             queue=queue,
             image=image,
@@ -53,6 +55,7 @@ class FakeRepository:
             queued_at=now,
             started_at=None,
             finished_at=None,
+            next_retry_at=now,
             updated_at=now,
         )
         self.jobs[job.id] = job
@@ -96,7 +99,11 @@ class JobApiTests(unittest.TestCase):
         app.dependency_overrides.clear()
 
     def test_create_job(self) -> None:
-        response = self.client.post("/jobs", json={"image": "busybox:1.36", "command": ["echo"], "args": ["hi"]})
+        response = self.client.post(
+            "/jobs",
+            json={"image": "busybox:1.36", "command": ["echo"], "args": ["hi"]},
+            headers={"X-Tenant-Id": "tenant-a"},
+        )
         self.assertEqual(response.status_code, 201)
         body = response.json()
         self.assertIn("job_id", body)
@@ -104,7 +111,7 @@ class JobApiTests(unittest.TestCase):
 
     def test_idempotent_repeat_returns_same_job_id(self) -> None:
         payload = {"image": "busybox:1.36", "command": ["echo"], "args": ["same"]}
-        headers = {"Idempotency-Key": "abc-123"}
+        headers = {"Idempotency-Key": "abc-123", "X-Tenant-Id": "tenant-a"}
 
         first = self.client.post("/jobs", json=payload, headers=headers)
         second = self.client.post("/jobs", json=payload, headers=headers)
@@ -116,7 +123,7 @@ class JobApiTests(unittest.TestCase):
     def test_idempotency_conflict_different_payload(self) -> None:
         first_payload = {"image": "busybox:1.36", "args": ["a"]}
         second_payload = {"image": "busybox:1.36", "args": ["b"]}
-        headers = {"Idempotency-Key": "same-key"}
+        headers = {"Idempotency-Key": "same-key", "X-Tenant-Id": "tenant-a"}
 
         first = self.client.post("/jobs", json=first_payload, headers=headers)
         second = self.client.post("/jobs", json=second_payload, headers=headers)
@@ -125,8 +132,8 @@ class JobApiTests(unittest.TestCase):
         self.assertEqual(second.status_code, 409)
 
     def test_list_filter_by_status(self) -> None:
-        queued = self.repo.create_job(image="busybox:1.36")
-        running = self.repo.create_job(image="busybox:1.36")
+        queued = self.repo.create_job(image="busybox:1.36", tenant_id="tenant-a")
+        running = self.repo.create_job(image="busybox:1.36", tenant_id="tenant-a")
         self.repo.update_job_status(running.id, "RUNNING")
 
         response = self.client.get("/jobs", params={"status": "RUNNING"})
@@ -136,7 +143,24 @@ class JobApiTests(unittest.TestCase):
         self.assertEqual(jobs[0]["id"], str(running.id))
         self.assertNotEqual(jobs[0]["id"], str(queued.id))
 
+    def test_submit_requires_tenant_header(self) -> None:
+        response = self.client.post("/jobs", json={"image": "busybox:1.36"})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["detail"], "X-Tenant-Id header is required")
+
+    def test_submit_with_tenant_persists_tenant_id(self) -> None:
+        response = self.client.post(
+            "/jobs",
+            json={"image": "busybox:1.36"},
+            headers={"X-Tenant-Id": "tenant-a"},
+        )
+        self.assertEqual(response.status_code, 201)
+        job_id = UUID(response.json()["job_id"])
+        job = self.repo.get_job(job_id)
+        self.assertIsNotNone(job)
+        assert job is not None
+        self.assertEqual(job.tenant_id, "tenant-a")
+
 
 if __name__ == "__main__":
     unittest.main()
-
