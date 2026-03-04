@@ -1,0 +1,34 @@
+# Commands for phase0/p0.1
+
+# 1) Inspect branch and repository structure
+
+git status --short --branch
+git rev-parse --abbrev-ref HEAD
+Get-ChildItem -Path . -Depth 4 | ForEach-Object { $_.FullName.Replace((Get-Location).Path+'\\','') }
+Get-Content services/api/main.py
+Get-Content services/scheduler/main.py
+Get-Content pkg/job_system/db.py
+Get-Content pkg/job_system/metrics.py
+
+# 2) Initialize evidence skeleton
+
+bash scripts/evidence_init.sh phase0 p0.1
+
+# 3) Capture inspection output
+
+# Generated docs/evidence/phase0/p0.1/outputs/01-repo-component-map.txt
+
+# 4) Create architecture docs and README links
+
+# Edited:
+# - docs/architecture/system-overview.md
+# - docs/architecture/component-boundaries.md
+# - README.md
+# - docs/reflection.md
+
+# 5) Capture architecture content and link check output
+
+# Generated docs/evidence/phase0/p0.1/outputs/02-architecture-docs.txt
+# Generated docs/evidence/phase0/p0.1/outputs/03-link-check.txt
+rg -n "system-overview|component-boundaries" README.md
+bash scripts/evidence_check.sh phase0 p0.1

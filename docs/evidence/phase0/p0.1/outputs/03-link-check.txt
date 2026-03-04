@@ -1,0 +1,6 @@
+Command: rg -n "system-overview|component-boundaries" README.md
+20:  - `docs/architecture/system-overview.md`
+21:  - `docs/architecture/component-boundaries.md`
+
+Command: bash scripts/evidence_check.sh phase0 p0.1
+Evidence check OK for phase0/p0.1.
