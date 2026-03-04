@@ -212,6 +212,24 @@ class JobRepository:
             "retries_total": int(row["retries_total"]),
         }
 
+    def get_status_counts_by_tenant_status(self) -> list[dict[str, Any]]:
+        query = """
+        SELECT tenant_id, status, COUNT(*) AS count
+        FROM jobs
+        GROUP BY tenant_id, status
+        """
+        with self.pool.connection() as conn, conn.cursor() as cur:
+            cur.execute(query)
+            rows = cur.fetchall()
+        return [
+            {
+                "tenant_id": row["tenant_id"],
+                "status": row["status"],
+                "count": int(row["count"]),
+            }
+            for row in rows
+        ]
+
     def mark_job_running(self, job_id: UUID) -> Job | None:
         now = datetime.now(timezone.utc)
         query = """

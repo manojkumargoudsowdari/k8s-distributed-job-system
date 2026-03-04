@@ -1,0 +1,5 @@
+INFO uvicorn.error submit_created tenant_id=tenant-c job_id=d838bdf1-70df-4344-91bb-b54f14a00dc8 status=QUEUED
+WARNING uvicorn.error submit_rate_limited tenant_id=tenant-c retry_after=1
+INFO job-system-scheduler dispatch_skipped_tenant_quota tenant_id=tenant-a running=1 limit=1 job_id=ad937e16-2de6-40e7-b083-db8ad77f91ac
+INFO job-system-scheduler job_running tenant_id=tenant-b job_id=7e633b2b-918f-4a0c-9d77-d79cba403c3b attempt=1
+INFO job-system-scheduler job_running tenant_id=tenant-c job_id=d838bdf1-70df-4344-91bb-b54f14a00dc8 attempt=1

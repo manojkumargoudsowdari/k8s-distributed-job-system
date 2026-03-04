@@ -19,6 +19,8 @@ from pkg.job_system import (
     Job,
     JobRepository,
     compute_next_retry_at,
+    record_dispatch_decision,
+    record_quota_block,
     record_retry,
     record_terminal_transition,
     refresh_gauges_from_db,
@@ -132,6 +134,10 @@ class Scheduler:
         )
         queued_jobs = self.repo.list_dispatchable_jobs(limit=candidate_limit)
         queued_jobs = self._order_dispatchable_jobs_round_robin(queued_jobs)
+        if not queued_jobs:
+            record_dispatch_decision(decision="no_candidates")
+            LOGGER.info("dispatch_no_candidates")
+            return
         running_by_tenant: dict[str, int] = {}
         dispatched = 0
         for job in queued_jobs:
@@ -150,6 +156,11 @@ class Scheduler:
                     self.tenant_max_running,
                     job.id,
                 )
+                record_quota_block(job.tenant_id)
+                record_dispatch_decision(
+                    decision="quota_skipped",
+                    tenant_id=job.tenant_id,
+                )
                 continue
 
             next_attempt = job.attempts + 1
@@ -163,6 +174,7 @@ class Scheduler:
             running_by_tenant[job.tenant_id] = running_count + 1
             self._rr_last_tenant = marked.tenant_id
             dispatched += 1
+            record_dispatch_decision(decision="dispatched", tenant_id=marked.tenant_id)
             LOGGER.info(
                 "job_running tenant_id=%s job_id=%s attempt=%s",
                 marked.tenant_id,

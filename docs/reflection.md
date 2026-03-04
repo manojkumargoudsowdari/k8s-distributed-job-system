@@ -1170,3 +1170,59 @@ Evidence:
 - `docs/evidence/phase4/m4.4/outputs/04-scheduler-stability-under-load.txt`
 - `docs/evidence/phase4/m4.4/outputs/05-tests.txt`
 - `docs/evidence/phase4/m4.4/outputs/06-evidence-check.txt`
+
+## 29) Phase 4 M4.5 - Multi-Tenant Observability
+
+What changed:
+
+- Added tenant-aware observability metrics with bounded cardinality:
+  - `pkg/job_system/metrics.py`
+  - Strategy: hashed tenant buckets (`tenant_bucket=0..f`) instead of raw `tenant_id` labels.
+- Added new bucketed and decision metrics:
+  - `job_system_jobs_queued_by_tenant_bucket`
+  - `job_system_jobs_running_by_tenant_bucket`
+  - `job_system_scheduler_dispatch_decisions_total`
+  - `job_system_scheduler_dispatch_decisions_by_tenant_bucket_total`
+  - `job_system_scheduler_quota_blocks_total`
+  - `job_system_scheduler_quota_blocks_by_tenant_bucket_total`
+  - `job_system_api_submit_rate_limited_total`
+  - `job_system_api_submit_rate_limited_by_tenant_bucket_total`
+- Added API instrumentation and logs:
+  - `services/api/main.py`
+  - increments rate-limit metrics on throttled submits
+  - logs `submit_created tenant_id=...` and `submit_rate_limited tenant_id=...`
+- Added scheduler instrumentation and logs:
+  - `services/scheduler/main.py`
+  - records dispatch decisions (`dispatched`, `quota_skipped`, `no_candidates`)
+  - records quota block counter per bucket
+  - logs dispatch decisions with tenant correlation
+- Added repository support for bucketed gauge refresh:
+  - `pkg/job_system/db.py` (`get_status_counts_by_tenant_status`)
+- Updated observability docs:
+  - `docs/operations/observability.md`
+- Extended tests for new metric surfacing:
+  - `tests/test_m3_2_api.py`
+
+What was proven:
+
+- Baseline metrics expose all new multi-tenant observability metric names.
+- Two-tenant load changes queued/running gauges and dispatch decision counters.
+- Quota skip and API rate-limited events increment dedicated counters.
+- API and scheduler logs include tenant-correlated decision lines for submit/dispatch/throttle paths.
+- Lint and unit tests pass.
+- Evidence check passes `scripts/evidence_check.sh phase4 m4.5`.
+
+Cardinality strategy:
+
+- Bounded hashed bucket labels (`tenant_bucket=0..f`) were chosen to preserve multi-tenant visibility without unbounded label growth.
+
+Evidence:
+
+- `docs/evidence/phase4/m4.5/runbook.md`
+- `docs/evidence/phase4/m4.5/outputs/01-observability-surface-map.txt`
+- `docs/evidence/phase4/m4.5/outputs/02-metrics-baseline.txt`
+- `docs/evidence/phase4/m4.5/outputs/03-metrics-two-tenants-load.txt`
+- `docs/evidence/phase4/m4.5/outputs/04-metrics-quota-and-rate-limit.txt`
+- `docs/evidence/phase4/m4.5/outputs/05-logs-correlation-tenant.txt`
+- `docs/evidence/phase4/m4.5/outputs/06-tests.txt`
+- `docs/evidence/phase4/m4.5/outputs/07-evidence-check.txt`
