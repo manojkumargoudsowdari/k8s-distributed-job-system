@@ -1,0 +1,20 @@
+Phase 4 demo harness (verification-only)
+Output directory: docs/evidence/phase4/m4.demo/outputs
+Using env: TENANT_MAX_RUNNING=1, TENANT_SUBMIT_RPS=1, TENANT_SUBMIT_BURST=1, SCHEDULER_METRICS_PORT=9000
+
+get_not_found tenant_id=tenant-b job_id=feed034b-dc0d-427e-af62-5ac58765c196
+submit_rate_limited tenant_id=tenant-z retry_after=1
+submit_rate_limited tenant_id=tenant-z retry_after=1
+submit_rate_limited tenant_id=tenant-z retry_after=1
+Demo complete.
+Generated:
+  docs/evidence/phase4/m4.demo/outputs/03-tenant-isolation.txt
+  docs/evidence/phase4/m4.demo/outputs/04-fairness-quota.txt
+  docs/evidence/phase4/m4.demo/outputs/05-rate-limit.txt
+  docs/evidence/phase4/m4.demo/outputs/06-metrics-scrape.txt
+
+What to look for:
+  - 404 on cross-tenant read
+  - alternating dispatch order and quota block signals
+  - 429 with Retry-After and rate-limit counter increments
+  - API and scheduler metrics scrape excerpts with non-zero counters

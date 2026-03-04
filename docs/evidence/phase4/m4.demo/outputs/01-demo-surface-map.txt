@@ -1,0 +1,26 @@
+M4.Demo surface map
+
+Closeout reference source:
+- docs/evidence/phase4/m4.closeout/runbook.md
+
+Environment startup and run paths:
+- README.md Quickstart B: build/load images, apply k8s manifests, run migrations, port-forward API, scrape metrics
+- docs/operations/local-dev.md: local dev stack runbook for API + scheduler + postgres
+- docs/operations/observability.md: API and scheduler metrics endpoints and key metric names
+
+Scripts available:
+- scripts/evidence_init.sh
+- scripts/evidence_check.sh
+- scripts/m3_1_db_smoke.py
+
+Demo harness approach for M4.Demo:
+- Add scripts/demo_phase4_closeout.sh as one-command deterministic harness.
+- Reuse closeout verification logic and output shape.
+- Write outputs to docs/evidence/phase4/m4.demo/outputs/.
+
+Key env vars used by demo harness:
+- TENANT_MAX_RUNNING
+- TENANT_SUBMIT_RPS
+- TENANT_SUBMIT_BURST
+- SCHEDULER_METRICS_PORT
+- DEMO_OUTPUT_DIR

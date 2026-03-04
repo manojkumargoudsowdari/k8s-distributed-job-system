@@ -1,0 +1,28 @@
+dispatch_order_fairness= ['tenant-a', 'tenant-b', 'tenant-a', 'tenant-b']
+expected_rr_prefix= ['tenant-a', 'tenant-b', 'tenant-a', 'tenant-b']
+
+metrics_excerpt:
+job_system_scheduler_dispatch_decisions_total{decision="dispatched"} 5.0
+job_system_scheduler_dispatch_decisions_total{decision="quota_skipped"} 1.0
+job_system_scheduler_dispatch_decisions_total{decision="no_candidates"} 0.0
+job_system_scheduler_quota_blocks_total 1.0
+job_system_scheduler_quota_blocks_by_tenant_bucket_total{tenant_bucket="0"} 0.0
+job_system_scheduler_quota_blocks_by_tenant_bucket_total{tenant_bucket="1"} 0.0
+job_system_scheduler_quota_blocks_by_tenant_bucket_total{tenant_bucket="2"} 0.0
+job_system_scheduler_quota_blocks_by_tenant_bucket_total{tenant_bucket="3"} 0.0
+job_system_scheduler_quota_blocks_by_tenant_bucket_total{tenant_bucket="4"} 0.0
+job_system_scheduler_quota_blocks_by_tenant_bucket_total{tenant_bucket="5"} 0.0
+job_system_scheduler_quota_blocks_by_tenant_bucket_total{tenant_bucket="6"} 0.0
+job_system_scheduler_quota_blocks_by_tenant_bucket_total{tenant_bucket="7"} 0.0
+job_system_scheduler_quota_blocks_by_tenant_bucket_total{tenant_bucket="8"} 0.0
+job_system_scheduler_quota_blocks_by_tenant_bucket_total{tenant_bucket="9"} 0.0
+job_system_scheduler_quota_blocks_by_tenant_bucket_total{tenant_bucket="a"} 0.0
+job_system_scheduler_quota_blocks_by_tenant_bucket_total{tenant_bucket="b"} 0.0
+job_system_scheduler_quota_blocks_by_tenant_bucket_total{tenant_bucket="c"} 0.0
+job_system_scheduler_quota_blocks_by_tenant_bucket_total{tenant_bucket="d"} 1.0
+job_system_scheduler_quota_blocks_by_tenant_bucket_total{tenant_bucket="e"} 0.0
+job_system_scheduler_quota_blocks_by_tenant_bucket_total{tenant_bucket="f"} 0.0
+
+log_excerpt:
+INFO dispatch_skipped_tenant_quota tenant_id=tenant-a running=1 limit=1 job_id=d3425db9-c41d-437f-9f2a-476197520880
+INFO job_running tenant_id=tenant-b job_id=fb560658-e640-4aef-866b-2e5f75734198 attempt=1

@@ -1,0 +1,21 @@
+# Commands for phase4/m4.demo
+
+# 0) Branch setup
+git status
+git rev-parse --abbrev-ref HEAD
+
+# 1) Initialize evidence skeleton
+bash scripts/evidence_init.sh phase4 m4.demo
+
+# 2) Inspect demo surface (before implementation)
+Get-Content docs/evidence/phase4/m4.closeout/runbook.md
+Get-Content docs/operations/local-dev.md
+Get-Content README.md
+Get-Content scripts/evidence_check.sh
+Get-ChildItem scripts
+
+# 3) Run live demo harness and capture full console output
+bash scripts/demo_phase4_closeout.sh > docs/evidence/phase4/m4.demo/outputs/02-demo-run.txt 2>&1
+
+# 4) Validate evidence pack shape
+bash scripts/evidence_check.sh phase4 m4.demo > docs/evidence/phase4/m4.demo/outputs/07-evidence-check.txt 2>&1
