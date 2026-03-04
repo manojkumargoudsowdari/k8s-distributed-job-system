@@ -1,0 +1,38 @@
+# Commands for phase4/m4.5
+
+# 0) Branch setup
+git status
+git rev-parse --abbrev-ref HEAD
+
+# 1) Initialize evidence skeleton
+bash scripts/evidence_init.sh phase4 m4.5
+
+# 2) Inspect observability surface
+Get-Content services/api/main.py
+Get-Content services/scheduler/main.py
+Get-Content pkg/job_system/metrics.py
+Get-Content docs/operations/observability.md
+rg -n "metrics|tenant|dispatch|quota|rate limit|start_http_server|render_metrics|job_system_" services/api/main.py services/scheduler/main.py pkg/job_system/metrics.py docs/operations/observability.md
+
+# 3) Generate deterministic evidence outputs
+# 01-observability-surface-map.txt written from inspection notes
+
+# 02-metrics-baseline.txt
+# Python script: empty in-memory repo override -> GET /metrics -> print new metric lines
+
+# 03-metrics-two-tenants-load.txt
+# Python script: two-tenant queued jobs + scheduler dispatch -> GET /metrics -> print queue/running + dispatch counters + bucket labels
+
+# 04-metrics-quota-and-rate-limit.txt
+# Python script: quota skip scenario + API rate-limit burst -> GET /metrics -> print quota/rate-limit counters
+
+# 05-logs-correlation-tenant.txt
+# Python script: enable logger handlers for uvicorn.error and job-system-scheduler,
+# then run submit accepted, submit rate-limited, scheduler dispatch cycle to emit tenant-correlated log lines
+
+# 06-tests.txt
+python -m ruff check . > docs/evidence/phase4/m4.5/outputs/06-tests.txt 2>&1
+python -m unittest discover -s tests -p "test_*.py" >> docs/evidence/phase4/m4.5/outputs/06-tests.txt 2>&1
+
+# 07-evidence-check.txt
+bash scripts/evidence_check.sh phase4 m4.5 > docs/evidence/phase4/m4.5/outputs/07-evidence-check.txt 2>&1

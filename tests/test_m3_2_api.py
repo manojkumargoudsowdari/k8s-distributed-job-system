@@ -99,6 +99,29 @@ class FakeRepository:
             values = [job for job in values if job.status == status]
         return values[:limit]
 
+    def get_status_counts(self) -> dict[str, int]:
+        counts: dict[str, int] = {}
+        for job in self.jobs.values():
+            counts[job.status] = counts.get(job.status, 0) + 1
+        return counts
+
+    def get_status_counts_by_tenant_status(self) -> list[dict[str, Any]]:
+        counts: dict[tuple[str, str], int] = {}
+        for job in self.jobs.values():
+            key = (job.tenant_id, job.status)
+            counts[key] = counts.get(key, 0) + 1
+        return [
+            {"tenant_id": tenant_id, "status": status, "count": count}
+            for (tenant_id, status), count in counts.items()
+        ]
+
+    def get_reliability_totals(self) -> dict[str, int]:
+        return {
+            "success_total": sum(1 for job in self.jobs.values() if job.status == "SUCCEEDED"),
+            "fail_total": sum(1 for job in self.jobs.values() if job.status == "FAILED"),
+            "retries_total": sum(max(job.attempts - 1, 0) for job in self.jobs.values()),
+        }
+
     def update_job_status(self, job_id: UUID, status: str, error: str | None = None) -> Job | None:
         job = self.jobs.get(job_id)
         if not job:
@@ -349,6 +372,43 @@ class JobApiTests(unittest.TestCase):
         self.assertEqual(timeout_response.status_code, 400)
         self.assertIn(
             "JOB_SUBMIT_MAX_TIMEOUT_SECONDS", timeout_response.json()["detail"]
+        )
+
+    def test_metrics_expose_multitenant_observability_names(self) -> None:
+        # Create two tenant jobs to ensure bucketed gauges can populate.
+        self.client.post(
+            "/jobs",
+            json={"image": "busybox:1.36"},
+            headers={"X-Tenant-Id": "tenant-a"},
+        )
+        self.client.post(
+            "/jobs",
+            json={"image": "busybox:1.36"},
+            headers={"X-Tenant-Id": "tenant-b"},
+        )
+        # Trigger one rate-limit event to ensure API rate-limited metrics exist.
+        limiter = TenantRateLimiter(rps=1.0, burst=1)
+        app.dependency_overrides[get_submit_limiter] = lambda: limiter
+        self.client.post(
+            "/jobs",
+            json={"image": "busybox:1.36"},
+            headers={"X-Tenant-Id": "tenant-c"},
+        )
+        self.client.post(
+            "/jobs",
+            json={"image": "busybox:1.36"},
+            headers={"X-Tenant-Id": "tenant-c"},
+        )
+
+        metrics_response = self.client.get("/metrics")
+        self.assertEqual(metrics_response.status_code, 200)
+        body = metrics_response.text
+        self.assertIn("job_system_jobs_queued_by_tenant_bucket", body)
+        self.assertIn("job_system_jobs_running_by_tenant_bucket", body)
+        self.assertIn("job_system_api_submit_rate_limited_total", body)
+        self.assertIn(
+            "job_system_api_submit_rate_limited_by_tenant_bucket_total",
+            body,
         )
 
 

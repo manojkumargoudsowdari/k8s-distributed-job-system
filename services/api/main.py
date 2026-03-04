@@ -25,7 +25,7 @@ from fastapi import (
 )
 from pydantic import BaseModel, Field
 
-from pkg.job_system import Job, JobRepository, render_metrics
+from pkg.job_system import Job, JobRepository, record_api_rate_limited, render_metrics
 
 app = FastAPI(title="distributed-job-system-api")
 # Reuse uvicorn logger pipeline so app logs appear in pod logs.
@@ -294,6 +294,12 @@ def submit_job(
     _validate_submit_caps(spec)
     allowed, retry_after = limiter.allow(tenant_id)
     if not allowed:
+        record_api_rate_limited(tenant_id)
+        LOGGER.warning(
+            "submit_rate_limited tenant_id=%s retry_after=%s",
+            tenant_id,
+            retry_after,
+        )
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Tenant submit rate limit exceeded; retry later",
@@ -317,7 +323,8 @@ def submit_job(
                     detail="Idempotency-Key conflict: request body differs from existing job",
                 )
             LOGGER.info(
-                "submit_idempotent_hit job_id=%s status=%s",
+                "submit_idempotent_hit tenant_id=%s job_id=%s status=%s",
+                tenant_id,
                 existing.id,
                 existing.status,
             )
@@ -352,7 +359,12 @@ def submit_job(
             status_code=status.HTTP_409_CONFLICT,
             detail="Idempotency-Key conflict: request body differs from existing job",
         )
-    LOGGER.info("submit_created job_id=%s status=%s", created.id, created.status)
+    LOGGER.info(
+        "submit_created tenant_id=%s job_id=%s status=%s",
+        tenant_id,
+        created.id,
+        created.status,
+    )
     return JobSubmitResponse(job_id=created.id, status=created.status)
 
 

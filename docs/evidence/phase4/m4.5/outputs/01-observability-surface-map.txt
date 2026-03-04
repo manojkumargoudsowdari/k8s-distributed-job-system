@@ -1,0 +1,33 @@
+M4.5 observability surface map
+
+Branch setup:
+- git status
+- git rev-parse --abbrev-ref HEAD
+
+Metrics exposure:
+- API endpoint: services/api/main.py -> GET /metrics -> render_metrics(repo)
+- Scheduler endpoint: services/scheduler/main.py -> start_http_server(SCHEDULER_METRICS_PORT, default 9000)
+- Shared metrics registry/module: pkg/job_system/metrics.py
+
+Existing and extended metrics location:
+- Gauges/counters/histogram definitions in pkg/job_system/metrics.py
+- API submit-path counters/logging in services/api/main.py
+- Scheduler dispatch/quota decision counters/logging in services/scheduler/main.py
+
+Tenant/cardinality strategy:
+- Tenant-aware metrics use hashed tenant bucket label tenant_bucket=0..f (bounded 16 buckets)
+- No raw tenant_id labels on Prometheus metrics
+
+Queue depth computation:
+- Global counts from JobRepository.get_status_counts()
+- Bucketed counts from JobRepository.get_status_counts_by_tenant_status()
+- Both refreshed in render_metrics() via refresh_gauges_from_db(repo)
+
+Logging fields observed:
+- API logs include tenant_id on submit_created and submit_rate_limited
+- Scheduler logs include tenant_id on job_running and dispatch_skipped_tenant_quota
+
+Relevant docs inspected:
+- docs/operations/observability.md
+- docs/evidence/phase3/m3.5/runbook.md
+- docs/evidence/phase4/m4.4/runbook.md
