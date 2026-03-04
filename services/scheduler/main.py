@@ -13,8 +13,17 @@ from uuid import UUID
 
 from kubernetes import client, config
 from kubernetes.client import ApiException
+from prometheus_client import start_http_server
 
-from pkg.job_system import Job, JobRepository, compute_next_retry_at
+from pkg.job_system import (
+    Job,
+    JobRepository,
+    compute_next_retry_at,
+    record_retry,
+    record_terminal_transition,
+    refresh_gauges_from_db,
+    sync_counters_from_db,
+)
 
 LOGGER = logging.getLogger("job-system-scheduler")
 
@@ -77,6 +86,7 @@ class Scheduler:
         )
         self.dispatch_batch_size = int(os.getenv("SCHEDULER_DISPATCH_BATCH_SIZE", "5"))
         self.running_scan_limit = int(os.getenv("SCHEDULER_RUNNING_SCAN_LIMIT", "50"))
+        self.metrics_port = int(os.getenv("SCHEDULER_METRICS_PORT", "9000"))
 
         self.repo = JobRepository(dsn)
         self.batch_api = self._load_batch_api()
@@ -92,7 +102,8 @@ class Scheduler:
         return client.BatchV1Api()
 
     def run_forever(self) -> None:
-        LOGGER.info("Scheduler started")
+        start_http_server(self.metrics_port)
+        LOGGER.info("scheduler_started metrics_port=%s", self.metrics_port)
         try:
             while True:
                 self.reconcile_once()
@@ -101,6 +112,8 @@ class Scheduler:
             self.repo.close()
 
     def reconcile_once(self) -> None:
+        refresh_gauges_from_db(self.repo)
+        sync_counters_from_db(self.repo)
         self._dispatch_queued_jobs()
         self._reconcile_running_jobs()
 
@@ -113,14 +126,12 @@ class Scheduler:
                 continue
             marked = self.repo.mark_job_running(job.id)
             if not marked:
-                LOGGER.info(
-                    "Skipped mark RUNNING because job state changed",
-                    extra={"job_id": str(job.id)},
-                )
+                LOGGER.info("dispatch_skip_state_changed job_id=%s", job.id)
                 continue
             LOGGER.info(
-                "Marked job as RUNNING",
-                extra={"job_id": str(job.id), "attempt": marked.attempts},
+                "job_running job_id=%s attempt=%s",
+                marked.id,
+                marked.attempts,
             )
 
     def _ensure_k8s_job_exists(self, job: Job, attempt: int) -> bool:
@@ -137,24 +148,22 @@ class Scheduler:
                 namespace=self.namespace, body=manifest
             )
             LOGGER.info(
-                "Created Kubernetes Job for workload",
-                extra={
-                    "job_id": str(job.id),
-                    "k8s_job_name": created.metadata.name,
-                    "attempt": attempt,
-                },
+                "k8s_job_created job_id=%s k8s_job_name=%s attempt=%s",
+                job.id,
+                created.metadata.name,
+                attempt,
             )
             return True
         except ApiException as exc:
             if exc.status == 409:
                 # Safe on restart/race: job already exists for this attempt.
                 return True
-            LOGGER.exception(
-                "Failed to create Kubernetes Job", extra={"job_id": str(job.id)}
-            )
-            self.repo.update_job_status(
+            LOGGER.exception("k8s_job_create_failed job_id=%s", job.id)
+            terminal = self.repo.update_job_status(
                 job.id, "FAILED", error=f"k8s job create failed: {exc.reason}"
             )
+            if terminal:
+                record_terminal_transition(terminal, "FAILED")
             return False
 
     def _reconcile_running_jobs(self) -> None:
@@ -167,19 +176,24 @@ class Scheduler:
                 self._handle_timeout(job, k8s_job)
                 continue
             if not k8s_job:
-                self.repo.mark_job_terminal(
+                terminal = self.repo.mark_job_terminal(
                     job.id, "FAILED", error="k8s job missing for running state"
                 )
+                if terminal:
+                    record_terminal_transition(terminal, "FAILED")
                 LOGGER.warning(
-                    "Marked RUNNING job as FAILED because backing Kubernetes Job was missing",
-                    extra={"job_id": str(job.id), "attempt": job.attempts},
+                    "missing_k8s_job_failed job_id=%s attempt=%s",
+                    job.id,
+                    job.attempts,
                 )
                 continue
 
             k8s_status = k8s_job.status
             if k8s_status and (k8s_status.succeeded or 0) > 0:
-                self.repo.mark_job_terminal(job.id, "SUCCEEDED")
-                LOGGER.info("Marked job as SUCCEEDED", extra={"job_id": str(job.id)})
+                terminal = self.repo.mark_job_terminal(job.id, "SUCCEEDED")
+                if terminal:
+                    record_terminal_transition(terminal, "SUCCEEDED")
+                LOGGER.info("job_succeeded job_id=%s", job.id)
                 continue
 
             if k8s_status and (k8s_status.failed or 0) > 0:
@@ -194,20 +208,24 @@ class Scheduler:
                         error=error,
                         next_retry_at=next_retry_at,
                     )
+                    record_retry()
                     LOGGER.info(
-                        "Requeued failed job for retry",
-                        extra={
-                            "job_id": str(job.id),
-                            "attempt": job.attempts,
-                            "max_retries": job.max_retries,
-                            "next_retry_at": next_retry_at.isoformat(),
-                        },
+                        "job_requeued_for_retry job_id=%s attempt=%s max_retries=%s next_retry_at=%s",
+                        job.id,
+                        job.attempts,
+                        job.max_retries,
+                        next_retry_at.isoformat(),
                     )
                 else:
-                    self.repo.mark_job_terminal(job.id, "FAILED", error=error)
+                    terminal = self.repo.mark_job_terminal(
+                        job.id, "FAILED", error=error
+                    )
+                    if terminal:
+                        record_terminal_transition(terminal, "FAILED")
                     LOGGER.info(
-                        "Marked job as FAILED",
-                        extra={"job_id": str(job.id), "error": error},
+                        "job_failed job_id=%s error=%s",
+                        job.id,
+                        error,
                     )
 
     def _get_k8s_job_for_job_id(
@@ -247,13 +265,17 @@ class Scheduler:
                 )
             except ApiException:
                 LOGGER.exception(
-                    "Failed deleting timed-out Kubernetes Job",
-                    extra={"job_id": str(job.id), "attempt": job.attempts},
+                    "timeout_delete_failed job_id=%s attempt=%s",
+                    job.id,
+                    job.attempts,
                 )
-        self.repo.mark_job_terminal(job.id, "FAILED", error="timeout")
+        terminal = self.repo.mark_job_terminal(job.id, "FAILED", error="timeout")
+        if terminal:
+            record_terminal_transition(terminal, "FAILED")
         LOGGER.warning(
-            "Marked job as FAILED due to timeout",
-            extra={"job_id": str(job.id), "attempt": job.attempts},
+            "job_timeout_failed job_id=%s attempt=%s",
+            job.id,
+            job.attempts,
         )
 
 

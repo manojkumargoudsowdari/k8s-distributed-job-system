@@ -1,0 +1,21 @@
+# submit 10 success + 10 failing-with-retry jobs
+SUCCESS 1 -> {"job_id": "24b51642-25db-4468-b0e2-4a6fea128429", "status": "QUEUED"}
+SUCCESS 2 -> {"job_id": "775e9f0f-fe13-4afa-a701-912893143642", "status": "QUEUED"}
+SUCCESS 3 -> {"job_id": "45e13476-5054-4e40-ab69-89a4d0571cda", "status": "QUEUED"}
+SUCCESS 4 -> {"job_id": "59e9983d-fcfa-4378-91f8-8103b49e57df", "status": "QUEUED"}
+SUCCESS 5 -> {"job_id": "e69ef088-9d90-4bdc-a487-7013726ec35a", "status": "QUEUED"}
+SUCCESS 6 -> {"job_id": "4e396cb5-5c81-4af5-b522-842a0eafba37", "status": "QUEUED"}
+SUCCESS 7 -> {"job_id": "63d9f35f-9905-4dbe-b81c-223c0c0597be", "status": "QUEUED"}
+SUCCESS 8 -> {"job_id": "097c450f-1f43-4a09-8d06-bd89b8543d10", "status": "QUEUED"}
+SUCCESS 9 -> {"job_id": "93413627-8b43-491f-93d0-9430fc23005c", "status": "QUEUED"}
+SUCCESS 10 -> {"job_id": "b697030c-9456-483f-b13a-036c51eab64b", "status": "QUEUED"}
+FAIL 1 -> {"job_id": "624cf705-51e0-467c-abf6-c1089e05ebec", "status": "QUEUED"}
+FAIL 2 -> {"job_id": "1980531c-9107-4f15-b721-c01a9452b8dd", "status": "QUEUED"}
+FAIL 3 -> {"job_id": "0151a9f8-7e2b-420b-bbf4-4d6690df20e6", "status": "QUEUED"}
+FAIL 4 -> {"job_id": "ee956bb2-0dbe-4699-a568-b576c2be4d38", "status": "QUEUED"}
+FAIL 5 -> {"job_id": "29614fbd-2098-4d75-8d91-3f159f9cf992", "status": "QUEUED"}
+FAIL 6 -> {"job_id": "5a3c0532-e59c-410e-8aa6-41acad947ae8", "status": "QUEUED"}
+FAIL 7 -> {"job_id": "5864e48b-2923-4c88-8fe7-8ed9426fffc0", "status": "QUEUED"}
+FAIL 8 -> {"job_id": "d347dac2-cee7-4a2a-944e-f600950feecb", "status": "QUEUED"}
+FAIL 9 -> {"job_id": "d9f8b9d3-0d88-4a8e-81ef-6e920d517dad", "status": "QUEUED"}
+FAIL 10 -> {"job_id": "df82cd4a-b9a3-4554-9fd7-08a64247cf18", "status": "QUEUED"}

@@ -1,0 +1,40 @@
+# Deploy/refresh job-system services
+kubectl apply -f k8s/job-system/postgres.yaml
+kubectl apply -f k8s/job-system/api-deployment.yaml
+kubectl apply -f k8s/job-system/api-service.yaml
+kubectl apply -f k8s/job-system/scheduler-serviceaccount.yaml
+kubectl apply -f k8s/job-system/scheduler-role.yaml
+kubectl apply -f k8s/job-system/scheduler-rolebinding.yaml
+kubectl apply -f k8s/job-system/scheduler-deployment.yaml
+
+kubectl rollout status deployment/job-system-postgres --timeout=180s
+kubectl rollout status deployment/job-system-api --timeout=180s
+kubectl rollout status deployment/job-system-scheduler --timeout=180s
+
+# Capture pod/service state
+kubectl get deploy,po,svc -l app in (job-system-postgres,job-system-api,job-system-scheduler)
+
+# Scheduler metrics baseline
+kubectl exec -n default $(kubectl get pods -n default -l app=job-system-scheduler -o jsonpath='{.items[0].metadata.name}') -- \
+  python -c "import urllib.request;print(urllib.request.urlopen('http://127.0.0.1:9000/metrics').read().decode(), end='')"
+
+# Submit 20 jobs (10 success + 10 fail-with-retry)
+# Success payload example:
+# {"image":"busybox:1.36","command":["sh","-c"],"args":["echo ok; sleep 8; exit 0"],"max_retries":0,"queue":"default"}
+# Fail payload example:
+# {"image":"busybox:1.36","command":["sh","-c"],"args":["echo fail; exit 1"],"max_retries":2,"backoff_seconds":3,"queue":"default"}
+
+# Metrics during load
+kubectl exec -n default $(kubectl get pods -n default -l app=job-system-scheduler -o jsonpath='{.items[0].metadata.name}') -- \
+  python -c "import urllib.request;print(urllib.request.urlopen('http://127.0.0.1:9000/metrics').read().decode(), end='')"
+
+# Wait for drain and capture after-drain metrics
+kubectl exec -n default $(kubectl get pods -n default -l app=job-system-postgres -o jsonpath='{.items[0].metadata.name}') -- \
+  psql -U jobs -d jobs -c "select status,count(*) from jobs group by status order by status;"
+
+kubectl exec -n default $(kubectl get pods -n default -l app=job-system-scheduler -o jsonpath='{.items[0].metadata.name}') -- \
+  python -c "import urllib.request;print(urllib.request.urlopen('http://127.0.0.1:9000/metrics').read().decode(), end='')"
+
+# Log correlation
+kubectl logs -n default deployment/job-system-api --tail=400
+kubectl logs -n default deployment/job-system-scheduler --tail=400

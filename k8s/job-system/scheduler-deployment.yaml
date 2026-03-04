@@ -20,6 +20,8 @@ spec:
         - name: scheduler
           image: job-system-scheduler:0.1.0
           imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9000
           env:
             - name: DATABASE_URL
               value: postgresql://jobs:jobs@job-system-postgres.default.svc.cluster.local:5432/jobs
@@ -31,6 +33,8 @@ spec:
               value: "5"
             - name: SCHEDULER_RUNNING_SCAN_LIMIT
               value: "50"
+            - name: SCHEDULER_METRICS_PORT
+              value: "9000"
           resources:
             requests:
               cpu: 100m

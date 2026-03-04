@@ -1,0 +1,103 @@
+# API logs with job_id
+INFO:     submit_created job_id=487e7206-6c91-4840-b1c3-d41cc2a8c478 status=QUEUED
+INFO:     submit_created job_id=95e6ddd6-2f0d-4a35-9799-4216f9ec73a2 status=QUEUED
+INFO:     submit_created job_id=808f5d90-3db8-4ded-86c9-badcbf1d5a37 status=QUEUED
+INFO:     submit_created job_id=41759e19-e2ac-408e-b7ee-c9eaec9b3998 status=QUEUED
+INFO:     submit_created job_id=703ebbf4-8648-4bf7-ad19-3af82aaf0bef status=QUEUED
+INFO:     submit_created job_id=d2461ad5-2b97-4853-b537-6ef70a037be7 status=QUEUED
+INFO:     submit_created job_id=7d159434-2ce6-409d-a1c6-ebb738ae93ca status=QUEUED
+INFO:     submit_created job_id=db015d19-9d80-4042-9091-8fbb0d0d0fe5 status=QUEUED
+INFO:     submit_created job_id=b31de8ec-d689-4c91-98f8-931bc69a5515 status=QUEUED
+INFO:     submit_created job_id=0a34e3da-9515-4747-a8da-4d658bba72b5 status=QUEUED
+INFO:     submit_created job_id=3d953d54-9eeb-4aba-9614-05cfdcc7ff6a status=QUEUED
+INFO:     submit_created job_id=ad002c80-9048-4995-bccf-affe1ead0980 status=QUEUED
+INFO:     submit_created job_id=cb5e05eb-961a-4a05-95de-038f91dc1f20 status=QUEUED
+INFO:     submit_created job_id=b6128823-c610-4e02-aff0-59bc7790f33e status=QUEUED
+INFO:     submit_created job_id=d667afb4-4057-4ea0-b5b5-7e80bae885a2 status=QUEUED
+INFO:     submit_created job_id=b67d5325-ab49-4c97-8d44-b4cb190d439c status=QUEUED
+INFO:     submit_created job_id=9fedd3bd-3350-49cb-8751-924791c7031e status=QUEUED
+INFO:     submit_created job_id=df65e396-67c2-468b-a220-84b56436569d status=QUEUED
+INFO:     submit_created job_id=8ff210e8-d75c-49c3-b82e-20f649618d01 status=QUEUED
+INFO:     submit_created job_id=c3b8bc60-2a01-483d-9881-e3e1e94b26ba status=QUEUED
+
+# Scheduler logs with job_id
+2026-03-03 22:06:32,089 INFO k8s_job_created job_id=487e7206-6c91-4840-b1c3-d41cc2a8c478 k8s_job_name=js-job-487e7206-a1 attempt=1
+2026-03-03 22:06:32,094 INFO job_running job_id=487e7206-6c91-4840-b1c3-d41cc2a8c478 attempt=1
+2026-03-03 22:06:32,113 INFO k8s_job_created job_id=95e6ddd6-2f0d-4a35-9799-4216f9ec73a2 k8s_job_name=js-job-95e6ddd6-a1 attempt=1
+2026-03-03 22:06:32,117 INFO job_running job_id=95e6ddd6-2f0d-4a35-9799-4216f9ec73a2 attempt=1
+2026-03-03 22:06:32,130 INFO k8s_job_created job_id=808f5d90-3db8-4ded-86c9-badcbf1d5a37 k8s_job_name=js-job-808f5d90-a1 attempt=1
+2026-03-03 22:06:32,134 INFO job_running job_id=808f5d90-3db8-4ded-86c9-badcbf1d5a37 attempt=1
+2026-03-03 22:06:32,149 INFO k8s_job_created job_id=41759e19-e2ac-408e-b7ee-c9eaec9b3998 k8s_job_name=js-job-41759e19-a1 attempt=1
+2026-03-03 22:06:32,154 INFO job_running job_id=41759e19-e2ac-408e-b7ee-c9eaec9b3998 attempt=1
+2026-03-03 22:06:32,165 INFO k8s_job_created job_id=703ebbf4-8648-4bf7-ad19-3af82aaf0bef k8s_job_name=js-job-703ebbf4-a1 attempt=1
+2026-03-03 22:06:32,168 INFO job_running job_id=703ebbf4-8648-4bf7-ad19-3af82aaf0bef attempt=1
+2026-03-03 22:06:35,307 INFO k8s_job_created job_id=d2461ad5-2b97-4853-b537-6ef70a037be7 k8s_job_name=js-job-d2461ad5-a1 attempt=1
+2026-03-03 22:06:35,311 INFO job_running job_id=d2461ad5-2b97-4853-b537-6ef70a037be7 attempt=1
+2026-03-03 22:06:35,326 INFO k8s_job_created job_id=7d159434-2ce6-409d-a1c6-ebb738ae93ca k8s_job_name=js-job-7d159434-a1 attempt=1
+2026-03-03 22:06:35,329 INFO job_running job_id=7d159434-2ce6-409d-a1c6-ebb738ae93ca attempt=1
+2026-03-03 22:06:35,343 INFO k8s_job_created job_id=db015d19-9d80-4042-9091-8fbb0d0d0fe5 k8s_job_name=js-job-db015d19-a1 attempt=1
+2026-03-03 22:06:35,346 INFO job_running job_id=db015d19-9d80-4042-9091-8fbb0d0d0fe5 attempt=1
+2026-03-03 22:06:35,364 INFO k8s_job_created job_id=b31de8ec-d689-4c91-98f8-931bc69a5515 k8s_job_name=js-job-b31de8ec-a1 attempt=1
+2026-03-03 22:06:35,367 INFO job_running job_id=b31de8ec-d689-4c91-98f8-931bc69a5515 attempt=1
+2026-03-03 22:06:35,378 INFO k8s_job_created job_id=0a34e3da-9515-4747-a8da-4d658bba72b5 k8s_job_name=js-job-0a34e3da-a1 attempt=1
+2026-03-03 22:06:35,381 INFO job_running job_id=0a34e3da-9515-4747-a8da-4d658bba72b5 attempt=1
+2026-03-03 22:06:38,453 INFO k8s_job_created job_id=3d953d54-9eeb-4aba-9614-05cfdcc7ff6a k8s_job_name=js-job-3d953d54-a1 attempt=1
+2026-03-03 22:06:38,456 INFO job_running job_id=3d953d54-9eeb-4aba-9614-05cfdcc7ff6a attempt=1
+2026-03-03 22:06:38,473 INFO k8s_job_created job_id=ad002c80-9048-4995-bccf-affe1ead0980 k8s_job_name=js-job-ad002c80-a1 attempt=1
+2026-03-03 22:06:38,476 INFO job_running job_id=ad002c80-9048-4995-bccf-affe1ead0980 attempt=1
+2026-03-03 22:06:38,493 INFO k8s_job_created job_id=cb5e05eb-961a-4a05-95de-038f91dc1f20 k8s_job_name=js-job-cb5e05eb-a1 attempt=1
+2026-03-03 22:06:38,497 INFO job_running job_id=cb5e05eb-961a-4a05-95de-038f91dc1f20 attempt=1
+2026-03-03 22:06:38,511 INFO k8s_job_created job_id=b6128823-c610-4e02-aff0-59bc7790f33e k8s_job_name=js-job-b6128823-a1 attempt=1
+2026-03-03 22:06:38,514 INFO job_running job_id=b6128823-c610-4e02-aff0-59bc7790f33e attempt=1
+2026-03-03 22:06:38,532 INFO k8s_job_created job_id=d667afb4-4057-4ea0-b5b5-7e80bae885a2 k8s_job_name=js-job-d667afb4-a1 attempt=1
+2026-03-03 22:06:38,535 INFO job_running job_id=d667afb4-4057-4ea0-b5b5-7e80bae885a2 attempt=1
+2026-03-03 22:06:41,746 INFO k8s_job_created job_id=b67d5325-ab49-4c97-8d44-b4cb190d439c k8s_job_name=js-job-b67d5325-a1 attempt=1
+2026-03-03 22:06:41,748 INFO job_running job_id=b67d5325-ab49-4c97-8d44-b4cb190d439c attempt=1
+2026-03-03 22:06:41,765 INFO k8s_job_created job_id=9fedd3bd-3350-49cb-8751-924791c7031e k8s_job_name=js-job-9fedd3bd-a1 attempt=1
+2026-03-03 22:06:41,768 INFO job_running job_id=9fedd3bd-3350-49cb-8751-924791c7031e attempt=1
+2026-03-03 22:06:41,786 INFO k8s_job_created job_id=df65e396-67c2-468b-a220-84b56436569d k8s_job_name=js-job-df65e396-a1 attempt=1
+2026-03-03 22:06:41,789 INFO job_running job_id=df65e396-67c2-468b-a220-84b56436569d attempt=1
+2026-03-03 22:06:41,808 INFO k8s_job_created job_id=8ff210e8-d75c-49c3-b82e-20f649618d01 k8s_job_name=js-job-8ff210e8-a1 attempt=1
+2026-03-03 22:06:41,811 INFO job_running job_id=8ff210e8-d75c-49c3-b82e-20f649618d01 attempt=1
+2026-03-03 22:06:41,826 INFO k8s_job_created job_id=c3b8bc60-2a01-483d-9881-e3e1e94b26ba k8s_job_name=js-job-c3b8bc60-a1 attempt=1
+2026-03-03 22:06:41,829 INFO job_running job_id=c3b8bc60-2a01-483d-9881-e3e1e94b26ba attempt=1
+2026-03-03 22:06:41,981 INFO job_succeeded job_id=703ebbf4-8648-4bf7-ad19-3af82aaf0bef
+2026-03-03 22:06:41,993 INFO job_succeeded job_id=41759e19-e2ac-408e-b7ee-c9eaec9b3998
+2026-03-03 22:06:42,011 INFO job_succeeded job_id=808f5d90-3db8-4ded-86c9-badcbf1d5a37
+2026-03-03 22:06:42,043 INFO job_succeeded job_id=95e6ddd6-2f0d-4a35-9799-4216f9ec73a2
+2026-03-03 22:06:42,056 INFO job_succeeded job_id=487e7206-6c91-4840-b1c3-d41cc2a8c478
+2026-03-03 22:06:45,149 INFO job_requeued_for_retry job_id=d667afb4-4057-4ea0-b5b5-7e80bae885a2 attempt=1 max_retries=2 next_retry_at=2026-03-03T22:06:48.145717+00:00
+2026-03-03 22:06:45,159 INFO job_requeued_for_retry job_id=b6128823-c610-4e02-aff0-59bc7790f33e attempt=1 max_retries=2 next_retry_at=2026-03-03T22:06:48.156238+00:00
+2026-03-03 22:06:45,169 INFO job_requeued_for_retry job_id=cb5e05eb-961a-4a05-95de-038f91dc1f20 attempt=1 max_retries=2 next_retry_at=2026-03-03T22:06:48.166339+00:00
+2026-03-03 22:06:45,178 INFO job_requeued_for_retry job_id=ad002c80-9048-4995-bccf-affe1ead0980 attempt=1 max_retries=2 next_retry_at=2026-03-03T22:06:48.175525+00:00
+2026-03-03 22:06:45,187 INFO job_requeued_for_retry job_id=3d953d54-9eeb-4aba-9614-05cfdcc7ff6a attempt=1 max_retries=2 next_retry_at=2026-03-03T22:06:48.184070+00:00
+2026-03-03 22:06:45,194 INFO job_succeeded job_id=0a34e3da-9515-4747-a8da-4d658bba72b5
+2026-03-03 22:06:45,201 INFO job_succeeded job_id=b31de8ec-d689-4c91-98f8-931bc69a5515
+2026-03-03 22:06:45,208 INFO job_succeeded job_id=db015d19-9d80-4042-9091-8fbb0d0d0fe5
+2026-03-03 22:06:45,216 INFO job_succeeded job_id=7d159434-2ce6-409d-a1c6-ebb738ae93ca
+2026-03-03 22:06:45,223 INFO job_succeeded job_id=d2461ad5-2b97-4853-b537-6ef70a037be7
+2026-03-03 22:06:48,249 INFO k8s_job_created job_id=d667afb4-4057-4ea0-b5b5-7e80bae885a2 k8s_job_name=js-job-d667afb4-a2 attempt=2
+2026-03-03 22:06:48,255 INFO job_running job_id=d667afb4-4057-4ea0-b5b5-7e80bae885a2 attempt=2
+2026-03-03 22:06:48,294 INFO k8s_job_created job_id=b6128823-c610-4e02-aff0-59bc7790f33e k8s_job_name=js-job-b6128823-a2 attempt=2
+2026-03-03 22:06:48,301 INFO job_running job_id=b6128823-c610-4e02-aff0-59bc7790f33e attempt=2
+2026-03-03 22:06:48,323 INFO k8s_job_created job_id=cb5e05eb-961a-4a05-95de-038f91dc1f20 k8s_job_name=js-job-cb5e05eb-a2 attempt=2
+2026-03-03 22:06:48,326 INFO job_running job_id=cb5e05eb-961a-4a05-95de-038f91dc1f20 attempt=2
+2026-03-03 22:06:48,339 INFO k8s_job_created job_id=ad002c80-9048-4995-bccf-affe1ead0980 k8s_job_name=js-job-ad002c80-a2 attempt=2
+2026-03-03 22:06:48,341 INFO job_running job_id=ad002c80-9048-4995-bccf-affe1ead0980 attempt=2
+2026-03-03 22:06:48,351 INFO k8s_job_created job_id=3d953d54-9eeb-4aba-9614-05cfdcc7ff6a k8s_job_name=js-job-3d953d54-a2 attempt=2
+2026-03-03 22:06:48,354 INFO job_running job_id=3d953d54-9eeb-4aba-9614-05cfdcc7ff6a attempt=2
+2026-03-03 22:06:48,453 INFO job_requeued_for_retry job_id=c3b8bc60-2a01-483d-9881-e3e1e94b26ba attempt=1 max_retries=2 next_retry_at=2026-03-03T22:06:51.450373+00:00
+2026-03-03 22:06:48,463 INFO job_requeued_for_retry job_id=8ff210e8-d75c-49c3-b82e-20f649618d01 attempt=1 max_retries=2 next_retry_at=2026-03-03T22:06:51.458253+00:00
+2026-03-03 22:06:48,476 INFO job_requeued_for_retry job_id=df65e396-67c2-468b-a220-84b56436569d attempt=1 max_retries=2 next_retry_at=2026-03-03T22:06:51.473528+00:00
+2026-03-03 22:06:48,488 INFO job_requeued_for_retry job_id=9fedd3bd-3350-49cb-8751-924791c7031e attempt=1 max_retries=2 next_retry_at=2026-03-03T22:06:51.483819+00:00
+2026-03-03 22:06:48,552 INFO job_requeued_for_retry job_id=b67d5325-ab49-4c97-8d44-b4cb190d439c attempt=1 max_retries=2 next_retry_at=2026-03-03T22:06:51.549750+00:00
+2026-03-03 22:06:51,616 INFO k8s_job_created job_id=c3b8bc60-2a01-483d-9881-e3e1e94b26ba k8s_job_name=js-job-c3b8bc60-a2 attempt=2
+2026-03-03 22:06:51,619 INFO job_running job_id=c3b8bc60-2a01-483d-9881-e3e1e94b26ba attempt=2
+2026-03-03 22:06:51,639 INFO k8s_job_created job_id=8ff210e8-d75c-49c3-b82e-20f649618d01 k8s_job_name=js-job-8ff210e8-a2 attempt=2
+2026-03-03 22:06:51,643 INFO job_running job_id=8ff210e8-d75c-49c3-b82e-20f649618d01 attempt=2
+2026-03-03 22:06:51,658 INFO k8s_job_created job_id=df65e396-67c2-468b-a220-84b56436569d k8s_job_name=js-job-df65e396-a2 attempt=2
+2026-03-03 22:06:51,661 INFO job_running job_id=df65e396-67c2-468b-a220-84b56436569d attempt=2
+2026-03-03 22:06:51,681 INFO k8s_job_created job_id=9fedd3bd-3350-49cb-8751-924791c7031e k8s_job_name=js-job-9fedd3bd-a2 attempt=2
+2026-03-03 22:06:51,684 INFO job_running job_id=9fedd3bd-3350-49cb-8751-924791c7031e attempt=2
+2026-03-03 22:06:51,701 INFO k8s_job_created job_id=b67d5325-ab49-4c97-8d44-b4cb190d439c k8s_job_name=js-job-b67d5325-a2 attempt=2
+2026-03-03 22:06:51,704 INFO job_running job_id=b67d5325-ab49-4c97-8d44-b4cb190d439c attempt=2
