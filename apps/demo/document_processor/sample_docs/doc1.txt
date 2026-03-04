@@ -1,0 +1,1 @@
+Kubernetes control planes coordinate desired state and observed state across API, scheduler, and worker layers. This sample document is deterministic for Demo.1 processing.

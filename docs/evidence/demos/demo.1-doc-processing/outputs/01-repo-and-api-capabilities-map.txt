@@ -1,0 +1,58 @@
+Demo.1 inspection map (repo + API capabilities)
+
+A) POST /jobs schema capabilities
+- Source: services/api/main.py
+- JobSpec fields accepted:
+  - image (required)
+  - command (list[str])
+  - args (list[str])
+  - env (dict)
+  - resources (dict)
+  - max_retries
+  - backoff_seconds
+  - timeout_seconds
+  - queue
+  - priority
+  - type (optional)
+  - payload (optional)
+- Required header: X-Tenant-Id (validated regex ^[A-Za-z0-9_-]{1,64}$).
+- Optional headers: Idempotency-Key, X-Submitted-By.
+- Rate-limiting/admission caps already enforced in API (no platform changes needed for demo).
+
+B) Scheduler mapping from DB job -> Kubernetes Job
+- Source: services/scheduler/main.py::_build_k8s_job_manifest
+- Container mapping:
+  - image <- job.image
+  - command <- job.command
+  - args <- job.args
+  - env <- job.env key/value map
+  - resources <- job.resources
+- K8s Job labels include:
+  - job-system/job-id
+  - job-system/attempt
+  - job-system/managed-by=scheduler
+
+C) Local/dev cluster run path
+- Source: README.md (Quickstart B: Distributed Job System)
+- Expected tools: kind, kubectl, docker.
+- Cluster name: ai-infra-lab.
+- Workflow:
+  - build API/scheduler images
+  - kind load docker-image ... --name ai-infra-lab
+  - apply k8s/job-system manifests
+  - apply SQL migrations from db/migrations/*.sql
+  - port-forward API and optionally scheduler metrics
+
+D) Existing demo harness assumptions (Phase 4)
+- Source: scripts/demo_phase4_closeout.sh
+- Reuses FastAPI TestClient + in-memory repos for deterministic local evidence.
+- Writes deterministic outputs under docs/evidence/phase4/m4.demo/outputs.
+- Uses env knobs: TENANT_MAX_RUNNING, TENANT_SUBMIT_RPS, TENANT_SUBMIT_BURST, SCHEDULER_METRICS_PORT.
+- Produces tenant isolation, fairness/quota, rate-limit, and metrics scrape proof files.
+
+Key paths
+- API: services/api/main.py
+- Scheduler: services/scheduler/main.py
+- DB access: pkg/job_system/db.py
+- Demo harness baseline: scripts/demo_phase4_closeout.sh
+- Migrations: db/migrations/*.sql

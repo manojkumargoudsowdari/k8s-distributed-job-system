@@ -1,0 +1,1 @@
+Tenant-aware scheduling prevents starvation by balancing dispatch decisions while honoring quotas, retries, and reliability constraints.

@@ -223,6 +223,20 @@ Expected generated outputs:
 - `docs/evidence/phase4/m4.demo/outputs/05-rate-limit.txt`
 - `docs/evidence/phase4/m4.demo/outputs/06-metrics-scrape.txt`
 
+## Demo: Document Processing Workload
+
+Run one command from repo root:
+
+```bash
+bash scripts/demo_document_processing.sh
+```
+
+Expected generated outputs:
+- `docs/evidence/demos/demo.1-doc-processing/outputs/02-image-build-and-load.txt`
+- `docs/evidence/demos/demo.1-doc-processing/outputs/03-job-submissions.txt`
+- `docs/evidence/demos/demo.1-doc-processing/outputs/04-results-aggregated.jsonl`
+- `docs/evidence/demos/demo.1-doc-processing/outputs/05-fairness-and-quota-signals.txt`
+
 ## Phase 2 Completion Evidence
 
 - Assessment narrative:

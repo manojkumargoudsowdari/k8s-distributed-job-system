@@ -1,0 +1,18 @@
+rate_limit_probe (tenant-rate):
+HTTP/1.1 201 Created
+content-type: application/json
+
+{"job_id":"aaaa1111-1111-1111-1111-111111111111","status":"QUEUED"}
+HTTP/1.1 201 Created
+content-type: application/json
+
+{"job_id":"bbbb2222-2222-2222-2222-222222222222","status":"QUEUED"}
+HTTP/1.1 429 Too Many Requests
+retry-after: 1
+content-type: application/json
+
+{"detail":"Tenant submit rate limit exceeded; retry later"}
+
+api_metrics_rate_limit_excerpt:
+job_system_api_submit_rate_limited_total 1.0
+job_system_api_submit_rate_limited_by_tenant_bucket_total{tenant_bucket="6"} 1.0

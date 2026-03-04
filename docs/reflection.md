@@ -1309,3 +1309,42 @@ Evidence:
 - `docs/evidence/phase4/m4.demo/outputs/05-rate-limit.txt`
 - `docs/evidence/phase4/m4.demo/outputs/06-metrics-scrape.txt`
 - `docs/evidence/phase4/m4.demo/outputs/07-evidence-check.txt`
+
+## 32) Demo.1 - Document Processing Workload
+
+What changed:
+
+- Added deterministic document-processing demo workload (no platform core logic changes):
+  - `apps/demo/document_processor/worker.py`
+  - `apps/demo/document_processor/Dockerfile`
+  - `apps/demo/document_processor/sample_docs/doc1.txt`
+  - `apps/demo/document_processor/sample_docs/doc2.txt`
+  - `apps/demo/document_processor/README.md`
+- Added one-command demo runner:
+  - `scripts/demo_document_processing.sh`
+  - Builds/loads worker image, submits tenant-scoped jobs, collects pod logs, and aggregates result JSON lines.
+- Added README pointer for reviewer entrypoint:
+  - `README.md` section: **Demo: Document Processing Workload**
+- Added demo evidence pack:
+  - `docs/evidence/demos/demo.1-doc-processing/runbook.md`
+  - `docs/evidence/demos/demo.1-doc-processing/commands.txt`
+  - `docs/evidence/demos/demo.1-doc-processing/outputs/*`
+
+What behavior was proven:
+
+- Platform executes a useful workload image for two tenants (`tenant-a` and `tenant-b`) through existing `/jobs` submit API.
+- Worker outputs deterministic JSON and outputs are aggregated into a stable, sorted JSONL artifact.
+- Fairness/quota signals are visible through scheduler logs and metrics excerpts during demo load.
+- Optional submit burst shows rate-limit behavior surface (`429` + `Retry-After`) without changing core scheduler/API logic.
+
+Evidence:
+
+- `docs/evidence/demos/demo.1-doc-processing/runbook.md`
+- `docs/evidence/demos/demo.1-doc-processing/outputs/01-repo-and-api-capabilities-map.txt`
+- `docs/evidence/demos/demo.1-doc-processing/outputs/02-image-build-and-load.txt`
+- `docs/evidence/demos/demo.1-doc-processing/outputs/03-job-submissions.txt`
+- `docs/evidence/demos/demo.1-doc-processing/outputs/04-results-aggregated.jsonl`
+- `docs/evidence/demos/demo.1-doc-processing/outputs/05-fairness-and-quota-signals.txt`
+- `docs/evidence/demos/demo.1-doc-processing/outputs/06-rate-limit-optional.txt`
+- `docs/evidence/demos/demo.1-doc-processing/outputs/07-demo-run-console.txt`
+- `docs/evidence/demos/demo.1-doc-processing/outputs/08-evidence-check.txt`

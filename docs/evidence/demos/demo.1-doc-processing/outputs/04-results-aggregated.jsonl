@@ -1,0 +1,9 @@
+{"doc_id": "doc-a1", "processed_at": "demo", "summary": "Tenant A document one focuses on deterministic summaries for demo validation.", "tenant_id": "tenant-a", "word_count": 11}
+{"doc_id": "doc-a2", "processed_at": "demo", "summary": "Tenant A document two validates scheduler quota behavior during concurrent dispatch.", "tenant_id": "tenant-a", "word_count": 11}
+{"doc_id": "doc-a3", "processed_at": "demo", "summary": "Tenant A document three tracks reproducible outputs and stable evidence file", "tenant_id": "tenant-a", "word_count": 12}
+{"doc_id": "doc-a4", "processed_at": "demo", "summary": "Tenant A document four confirms multi-tenant processing without platform logic changes.", "tenant_id": "tenant-a", "word_count": 10}
+{"doc_id": "doc-a5", "processed_at": "demo", "summary": "Tenant A document five checks workload logs and JSON parsing in", "tenant_id": "tenant-a", "word_count": 12}
+{"doc_id": "doc-a6", "processed_at": "demo", "summary": "Tenant A document six closes the batch with predictable summary and", "tenant_id": "tenant-a", "word_count": 13}
+{"doc_id": "doc-b1", "processed_at": "demo", "summary": "Tenant B document one ensures fair scheduling under constrained tenant concurrency.", "tenant_id": "tenant-b", "word_count": 11}
+{"doc_id": "doc-b2", "processed_at": "demo", "summary": "Tenant B document two verifies that smaller tenants still make progress.", "tenant_id": "tenant-b", "word_count": 11}
+{"doc_id": "doc-b3", "processed_at": "demo", "summary": "Tenant B document three validates final aggregation ordering by document id.", "tenant_id": "tenant-b", "word_count": 11}
