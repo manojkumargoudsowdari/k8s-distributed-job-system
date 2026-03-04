@@ -1,0 +1,16 @@
+$ bash scripts/demo_document_processing.sh
+Demo.1 document processing workload
+Demo complete.
+Generated outputs under docs/evidence/demos/demo.1-doc-processing/outputs:
+  02-image-build-and-load.txt
+  03-job-submissions.txt
+  04-results-aggregated.jsonl
+  05-fairness-and-quota-signals.txt
+  06-rate-limit-optional.txt
+  08-evidence-check.txt
+
+What to look for:
+  - tenant-a (6 docs) and tenant-b (3 docs) submissions
+  - sorted aggregated processor outputs by doc_id
+  - scheduler quota/fairness signals
+  - optional rate-limit probe results

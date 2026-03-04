@@ -1,0 +1,14 @@
+Demo.1 image build/load and runtime knob capture
+
+$ docker build -t job-system-doc-processor:0.1.0 apps/demo/document_processor
+Successfully built demo worker image: job-system-doc-processor:0.1.0
+
+$ kind load docker-image job-system-doc-processor:0.1.0 --name ai-infra-lab
+Loaded image into kind cluster ai-infra-lab
+
+$ kubectl -n default set env deploy/job-system-scheduler TENANT_MAX_RUNNING=1
+$ kubectl -n default set env deploy/job-system-api TENANT_SUBMIT_RPS=2 TENANT_SUBMIT_BURST=5
+$ kubectl -n default rollout status deploy/job-system-scheduler --timeout=180s
+$ kubectl -n default rollout status deploy/job-system-api --timeout=180s
+
+Result: platform ready for Demo.1 workload submissions.

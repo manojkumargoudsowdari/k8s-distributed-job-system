@@ -47,6 +47,16 @@ The repository has progressed from Kubernetes fundamentals to a production-style
   - rate limiting
   - API/scheduler metrics scrape
 
+## Demo Workloads on Platform
+### Demo.1 Document Processing
+- Added deterministic document-processor worker workload:
+  - `apps/demo/document_processor/*`
+- Added one-command runner on top of existing platform:
+  - `scripts/demo_document_processing.sh`
+- Proves useful multi-tenant workload execution with aggregated JSON results and fairness/quota signal visibility.
+- Evidence pack:
+  - `docs/evidence/demos/demo.1-doc-processing/`
+
 ## Current Platform Capability
 - Multi-tenant job submission and scoped access.
 - Fair, quota-aware scheduler behavior with bounded selection.
@@ -57,3 +67,4 @@ The repository has progressed from Kubernetes fundamentals to a production-style
 - Milestone journal: `docs/reflection.md`
 - Phase 4 closeout: `docs/evidence/phase4/m4.closeout/`
 - Live demo harness evidence: `docs/evidence/phase4/m4.demo/`
+- Demo workloads evidence: `docs/evidence/demos/demo.1-doc-processing/`

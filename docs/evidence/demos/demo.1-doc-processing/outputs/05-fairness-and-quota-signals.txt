@@ -1,0 +1,17 @@
+scheduler_log_excerpt:
+INFO dispatch_skipped_tenant_quota tenant_id=tenant-a running=1 limit=1 job_id=55555555-5555-5555-5555-555555555555
+INFO job_running tenant_id=tenant-b job_id=77777777-7777-7777-7777-777777777777 attempt=1
+INFO job_running tenant_id=tenant-a job_id=22222222-2222-2222-2222-222222222222 attempt=1
+INFO dispatch_skipped_tenant_quota tenant_id=tenant-a running=1 limit=1 job_id=66666666-6666-6666-6666-666666666666
+
+api_metrics_excerpt:
+job_system_scheduler_dispatch_decisions_total{decision="dispatched"} 9.0
+job_system_scheduler_dispatch_decisions_total{decision="quota_skipped"} 4.0
+job_system_scheduler_quota_blocks_total 4.0
+job_system_jobs_queued 0.0
+job_system_jobs_running 0.0
+
+scheduler_metrics_excerpt:
+job_system_scheduler_dispatch_decisions_total{decision="dispatched"} 9.0
+job_system_scheduler_dispatch_decisions_total{decision="quota_skipped"} 4.0
+job_system_scheduler_quota_blocks_total 4.0

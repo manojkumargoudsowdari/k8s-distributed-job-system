@@ -1,0 +1,16 @@
+# Commands for demos/demo.1-doc-processing
+
+git status
+git rev-parse --abbrev-ref HEAD
+
+# Inspection-first capture
+rg -n "class JobSpec|@app.post\(\"/jobs\"|_validated_tenant_id" services/api/main.py
+rg -n "_build_k8s_job_manifest|create_namespaced_job|TENANT_MAX_RUNNING" services/scheduler/main.py
+Get-Content README.md -TotalCount 260
+Get-Content scripts/demo_phase4_closeout.sh -TotalCount 520
+
+# Demo worker + harness execution
+bash scripts/demo_document_processing.sh
+
+# Evidence check (reuse existing phase4 gate)
+bash scripts/evidence_check.sh phase4 m4.closeout
