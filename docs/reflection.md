@@ -884,3 +884,31 @@ Evidence:
 - `docs/evidence/phase4/m4.1/outputs/05-tests.txt`
 - `docs/evidence/phase4/m4.1/runbook.md`
 - `docs/evidence/phase4/m4.1/commands.txt`
+
+## 20) Phase 0 P0.1 - System Map + Component Boundaries
+
+What changed:
+
+- Added architecture overview doc:
+  - `docs/architecture/system-overview.md`
+- Added component boundaries doc:
+  - `docs/architecture/component-boundaries.md`
+- Added architecture links in `README.md` under repository layout.
+- Added Phase 0 evidence pack:
+  - `docs/evidence/phase0/p0.1/runbook.md`
+  - `docs/evidence/phase0/p0.1/commands.txt`
+  - `docs/evidence/phase0/p0.1/outputs/*`
+
+What was proven:
+
+- Repository component inspection was captured before documentation edits.
+- Architecture docs exist with control/data flow and ownership boundaries.
+- README links resolve to the new architecture docs.
+- Evidence pack passes `scripts/evidence_check.sh phase0 p0.1`.
+
+Evidence:
+
+- `docs/evidence/phase0/p0.1/runbook.md`
+- `docs/evidence/phase0/p0.1/outputs/01-repo-component-map.txt`
+- `docs/evidence/phase0/p0.1/outputs/02-architecture-docs.txt`
+- `docs/evidence/phase0/p0.1/outputs/03-link-check.txt`

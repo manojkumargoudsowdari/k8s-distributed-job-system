@@ -16,6 +16,9 @@ Distributed systems learning repo for Kubernetes scheduling, pressure behavior, 
 - Evidence and reflections:
   - `docs/reflection.md`
   - `docs/evidence/*`
+- Architecture docs:
+  - `docs/architecture/system-overview.md`
+  - `docs/architecture/component-boundaries.md`
 
 ## Quickstart A: Model Serving (Phase 2)
 
