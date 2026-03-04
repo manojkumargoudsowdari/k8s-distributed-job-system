@@ -1,0 +1,109 @@
+=== docs/contracts/job-lifecycle.md ===
+# Job Lifecycle Contract
+
+## Purpose
+This contract documents the currently implemented job lifecycle behavior so API, scheduler, and operations changes can be validated against one state-machine source of truth.
+
+## Guarantees
+- Job lifecycle state is persisted in Postgres `jobs.status` and treated as authoritative.
+- Job creation enters `QUEUED` state only through API submit + repository create path.
+- Scheduler is the only component that moves `QUEUED` jobs to `RUNNING` and resolves runtime outcomes.
+- Retries are explicit state transitions (`RUNNING -> QUEUED`) with backoff gating via `next_retry_at`.
+- Terminal lifecycle states are `SUCCEEDED`, `FAILED`, or `CANCELED`.
+
+## State Machine
+```mermaid
+stateDiagram-v2
+    [*] --> QUEUED: API submit/create_job
+    QUEUED --> RUNNING: scheduler mark_job_running
+    RUNNING --> SUCCEEDED: scheduler mark_job_terminal(SUCCEEDED)
+    RUNNING --> FAILED: scheduler mark_job_terminal(FAILED)
+    RUNNING --> QUEUED: scheduler mark_job_for_retry
+    QUEUED --> CANCELED: API cancel endpoint
+    SUCCEEDED --> [*]
+    FAILED --> [*]
+    CANCELED --> [*]
+```
+
+## Status Definitions
+- `QUEUED`:
+  - Meaning: accepted and persisted, eligible for dispatch when retry/backoff gate allows.
+  - Set by: API/repository on create, scheduler on retry requeue.
+  - Terminal: No.
+- `RUNNING`:
+  - Meaning: scheduler dispatched a Kubernetes Job for current attempt.
+  - Set by: scheduler (`mark_job_running`).
+  - Terminal: No.
+- `SUCCEEDED`:
+  - Meaning: Kubernetes Job completion succeeded for active attempt.
+  - Set by: scheduler reconciliation.
+  - Terminal: Yes.
+- `FAILED`:
+  - Meaning: runtime failed and no retry path remains, or timeout/missing-k8s-job failure occurred.
+  - Set by: scheduler reconciliation / timeout handler.
+  - Terminal: Yes.
+- `CANCELED`:
+  - Meaning: canceled by API while still queued.
+  - Set by: API cancel endpoint (`QUEUED` only in current implementation).
+  - Terminal: Yes.
+
+Note: `job_attempts.status` includes `TIMED_OUT`, but current runtime logic records timeout as `jobs.status='FAILED'` with `last_error='timeout'`.
+
+## Transition Rules (Current Contract)
+Allowed transitions:
+- `QUEUED -> RUNNING`
+- `RUNNING -> SUCCEEDED`
+- `RUNNING -> FAILED`
+- `RUNNING -> QUEUED` (retry path)
+- `QUEUED -> CANCELED`
+
+Forbidden transitions:
+- `SUCCEEDED|FAILED|CANCELED -> *` (no reopen path implemented)
+- `QUEUED -> SUCCEEDED|FAILED` directly
+- `RUNNING -> CANCELED` (not implemented yet)
+- `CANCELED -> RUNNING`
+
+Idempotency rules:
+- Submit path:
+  - same `Idempotency-Key` + same request fingerprint -> return existing job id/status.
+  - same key + different fingerprint -> `409 Conflict`.
+- Transition calls are guarded by `WHERE status = ...` in repository methods, so repeated/stale transition attempts become no-op (`None` result) instead of corrupting state.
+
+## Invariants
+
+Tenant invariants:
+- Every job must have non-empty `tenant_id` validated by API header `X-Tenant-Id`.
+- Scheduler dispatch enforces tenant running quota via `TENANT_MAX_RUNNING`.
+- A tenant must not exceed `TENANT_MAX_RUNNING` jobs in `RUNNING` state as enforced at scheduling decision time.
+
+Retry/backoff invariants:
+- `attempts` increments only on `QUEUED -> RUNNING`.
+- Retry can occur only when `attempts < max_retries`.
+- Retry requeue sets `status=QUEUED`, writes `last_error`, and schedules future eligibility with `next_retry_at`.
+- Dispatcher only selects jobs where `status='QUEUED'` and `next_retry_at <= now`.
+
+Time/ordering invariants:
+- `created_at` is immutable creation timestamp.
+- Dispatch ordering is priority-first, then earliest retry/queued time, then creation time.
+- `started_at` is reset to dispatch time for each running attempt.
+- `finished_at` is set on first terminalization and retained via `COALESCE`.
+
+## Failure Modes and Recovery
+- Scheduler restart mid-transition:
+  - On restart, scheduler resumes from persisted DB states (`QUEUED`/`RUNNING`) and reconciles to eventual terminal state.
+- Missing Kubernetes Job while DB says `RUNNING`:
+  - Scheduler marks job `FAILED` with `last_error` describing missing execution resource.
+- Timeout:
+  - Scheduler deletes Kubernetes Job and marks lifecycle `FAILED` with `last_error='timeout'`.
+- DB guardrails:
+  - Check constraints enforce valid status values.
+  - Transition methods use status predicates in SQL (`WHERE status='QUEUED'` / `WHERE status='RUNNING'`) to prevent invalid cross-state writes.
+
+## Links
+- System overview: [system-overview.md](/mnt/d/Work/Code/Kubernetes/k8s-distributed-job-system/docs/architecture/system-overview.md)
+- Component boundaries: [component-boundaries.md](/mnt/d/Work/Code/Kubernetes/k8s-distributed-job-system/docs/architecture/component-boundaries.md)
+- Phase 4 plan: [phase4.md](/mnt/d/Work/Code/Kubernetes/k8s-distributed-job-system/docs/plans/phase4.md)
+- P0.2 evidence pack: [docs/evidence/phase0/p0.2/](/mnt/d/Work/Code/Kubernetes/k8s-distributed-job-system/docs/evidence/phase0/p0.2)
+
+=== README lifecycle link ===
+22:  - `docs/contracts/job-lifecycle.md`

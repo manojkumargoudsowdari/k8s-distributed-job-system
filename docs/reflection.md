@@ -912,3 +912,29 @@ Evidence:
 - `docs/evidence/phase0/p0.1/outputs/01-repo-component-map.txt`
 - `docs/evidence/phase0/p0.1/outputs/02-architecture-docs.txt`
 - `docs/evidence/phase0/p0.1/outputs/03-link-check.txt`
+
+## 21) Phase 0 P0.2 - Job Lifecycle Contract (State Machine + Invariants)
+
+What changed:
+
+- Added lifecycle contract:
+  - `docs/contracts/job-lifecycle.md`
+- Added minimal README navigation link:
+  - `docs/contracts/job-lifecycle.md`
+
+What was proven:
+
+- Status set was derived from current schema/runtime code:
+  - `jobs.status`: `QUEUED`, `RUNNING`, `SUCCEEDED`, `FAILED`, `CANCELED`
+  - `job_attempts.status`: includes `TIMED_OUT` (defined but not currently used by runtime transition writes)
+- Implemented transitions were mapped to concrete API/scheduler/repository functions.
+- Invariants were documented for tenant identity, tenant running quota (`TENANT_MAX_RUNNING`), retry/backoff gating (`next_retry_at`), and transition guards.
+- Evidence pack passes lifecycle validation via `scripts/evidence_check.sh phase0 p0.2`.
+
+Evidence:
+
+- `docs/evidence/phase0/p0.2/runbook.md`
+- `docs/evidence/phase0/p0.2/outputs/01-lifecycle-source-map.txt`
+- `docs/evidence/phase0/p0.2/outputs/02-job-lifecycle-contract.txt`
+- `docs/evidence/phase0/p0.2/outputs/03-transition-proof-pointers.txt`
+- `docs/evidence/phase0/p0.2/outputs/04-evidence-check.txt`
